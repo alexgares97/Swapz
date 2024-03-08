@@ -1,14 +1,17 @@
 package com.eug.swapz.ui.scenes.articleDetail
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material3.Button
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,8 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.eug.swapz.R
 
 import com.google.android.gms.location.*
@@ -50,7 +57,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = article.title) },
+                title = { Text(text = stringResource(R.string.app_name)) },
                 actions = {
                     IconButton(onClick = { viewModel.signOut() }) {
                         Box(
@@ -72,6 +79,63 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                 }
             )
         }) { innerPadding ->
-    }
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(16.dp)
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .align(Alignment.CenterHorizontally)
+            )
+            Text(
+                text = article.title,
+                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+            ) {
+                /*
+                items(article.carrusel?.size ?: 0) { index ->
+                    val imageUrl = article.carrusel?.get(index)
+                    imageUrl?.let {
+                        Image(
+                            painter = rememberAsyncImagePainter(imageUrl),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(200.dp)
+                                .padding(8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                        )
+                    }
+                }*/
+            }
+
+            Text(
+                text = article.desc,
+                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+            Text(
+                text = article.value.toString() + " €",
+                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = { /* Handle button click */ },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text(text = "Intercambiar", color = Color.White)
+            }
+        }
+    }
 }
+

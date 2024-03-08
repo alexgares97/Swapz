@@ -159,7 +159,6 @@ fun MainScene(viewModel: MainViewModel) {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Preview(showBackground = true)
 @Composable
 fun MainScenePreview() {
