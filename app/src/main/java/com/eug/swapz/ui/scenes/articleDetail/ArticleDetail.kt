@@ -7,10 +7,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -60,6 +62,8 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
     var selectedCategory = remember { mutableStateOf(TextFieldValue()) }
     var showOptions by remember { mutableStateOf(false) }
     var onClickImg by remember { mutableStateOf(false) }
+    val images = article.carrusel ?: emptyList()
+    val pagerState = rememberPagerState(pageCount = { images.size })
 
     Scaffold(
         topBar = {
@@ -99,14 +103,11 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                         .clickable { onClickImg = true }
                         .fillMaxWidth()
                 )
-
-
                 Text(
                     text = article.title,
                     style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-
                 Text(
                     text = article.desc,
                     style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
@@ -126,22 +127,65 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                 }
             }
             else {
-                val images = article.carrusel ?: emptyList()
-
-                val pagerState = rememberPagerState(pageCount = { images.size })
-
-                HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Image(
-                            painter = rememberAsyncImagePainter(images[page]),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Fit
-                        )
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Image(
+                                painter = rememberAsyncImagePainter(images[page]),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    PagerIndicator(
+                        pagerState = pagerState,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
                 }
             }
         }
     }
+}
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun PagerIndicator(
+    pagerState: PagerState,
+    modifier: Modifier = Modifier,
+    indicatorSize: Int = 12,
+    indicatorSpacing: Int = 8,
+    activeColor: Color = MaterialTheme.colors.primary,
+    inactiveColor: Color = Color.Gray
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(pagerState.pageCount) { index ->
+            Spacer(modifier = Modifier.width(indicatorSpacing.dp))
+            Indicator(
+                active = index == pagerState.currentPage,
+                color = if (index == pagerState.currentPage) activeColor else inactiveColor,
+                size = indicatorSize
+            )
+        }
+    }
+}
+
+@Composable
+private fun Indicator(
+    active: Boolean,
+    color: Color,
+    size: Int
+) {
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .size(size.dp)
+            .background(color)
+    )
 }
 
