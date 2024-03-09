@@ -5,7 +5,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -13,16 +12,14 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
-
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.Button
-
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -43,28 +40,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.eug.swapz.R
-
 import com.google.android.gms.location.*
-
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ArticleDetail(viewModel: ArticleDetailViewModel) {
     val article = viewModel.article ?: return
-    // val mapView = viewModel.rememberMapViewWithLifecycle()
-    // val selectedLocation = remember { mutableStateOf<Location?>(null) }
-    val showAddLocationPopup = remember { mutableStateOf(false) }
-    val newLocationTitle = remember { mutableStateOf(TextFieldValue()) }
-    val newLocationCategory = remember { mutableStateOf(TextFieldValue()) }
-    val newLocationDescription = remember { mutableStateOf(TextFieldValue()) }
-    val newLocationImg = remember { mutableStateOf(TextFieldValue()) }
-    var selectedCategory = remember { mutableStateOf(TextFieldValue()) }
-    var showOptions by remember { mutableStateOf(false) }
     var onClickImg by remember { mutableStateOf(false) }
     val images = article.carrusel ?: emptyList()
     val pagerState = rememberPagerState(pageCount = { images.size })
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -130,6 +114,15 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                 Column(
                     modifier = Modifier.fillMaxSize()
                 ) {
+                    IconButton(
+                        onClick = { onClickImg = false },
+                        modifier = Modifier.align(Alignment.Start)
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
                     HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
                         Box(modifier = Modifier.fillMaxSize()) {
                             Image(
@@ -167,17 +160,14 @@ fun PagerIndicator(
         repeat(pagerState.pageCount) { index ->
             Spacer(modifier = Modifier.width(indicatorSpacing.dp))
             Indicator(
-                active = index == pagerState.currentPage,
                 color = if (index == pagerState.currentPage) activeColor else inactiveColor,
                 size = indicatorSize
             )
         }
     }
 }
-
 @Composable
 private fun Indicator(
-    active: Boolean,
     color: Color,
     size: Int
 ) {
