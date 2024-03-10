@@ -40,7 +40,7 @@ fun MyApp() {
     val mainListSceneFactory =
         MainListSceneFactory(navController, sessionDataSource, mainDataSource)
     //registerSceneFactory = RegisterSceneFactory(navController, sessionDataSource, capsulesDataSource)
-    val articleDetailFactory = ArticleDetailFactory(navController, mainDataSource)
+    val articleDetailFactory = ArticleDetailFactory(navController, mainDataSource, sessionDataSource)
 
     val startDestination =
         if (sessionDataSource.isLoggedIn()) AppRoutes.MAIN.value else AppRoutes.INTRO.value

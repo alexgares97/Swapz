@@ -41,7 +41,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 fun LoginScene(viewModel: LoginViewModel) {
     val context = LocalContext.current
     val emailState = remember { mutableStateOf(TextFieldValue("alexgares97@gmail.com")) }
-    val passwordState = remember { mutableStateOf(TextFieldValue("Giantroier123")) }
+    val passwordState = remember { mutableStateOf(TextFieldValue("admin123")) }
     fun validateInputs(callback: (email: String, password: String) -> Unit) {
         val email = emailState.value.text
         val password = passwordState.value.text
