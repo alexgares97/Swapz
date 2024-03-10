@@ -40,12 +40,13 @@ class ArticleDetailViewModel (
             }
         }
     }
-    fun goHome(){
+    fun home() {
+        navController.popBackStack()
+    }
+
+    fun exchange(){
         TODO("Not yet implemented")
 
-    }
-    fun back() {
-        navController.popBackStack()
     }
 
 

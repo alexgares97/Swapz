@@ -6,20 +6,27 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddBox
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AddToQueue
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +48,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import coil.compose.rememberAsyncImagePainter
 import com.eug.swapz.R
 import com.google.android.gms.location.*
@@ -73,7 +81,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                     .background(Color.Green)
                             ) {
                                 Icon(
-                                    Icons.Filled.ExitToApp,
+                                    Icons.AutoMirrored.Filled.ExitToApp,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier
@@ -82,7 +90,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                 )
                             }
                         }
-                        IconButton(onClick = {viewModel.back()})
+                        IconButton(onClick = {viewModel.home()})
                         {
                             Box(
                                 Modifier
@@ -132,11 +140,18 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
                     modifier = Modifier.align(Alignment.Start)
                 )
+                Spacer(modifier = Modifier
+                    .height(16.dp)
+                )
+                Button(
+                    onClick = { viewModel.exchange() },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Text(text = "Intercambiar", color = Color.White)
+                }
 
             }
-            Spacer(modifier = Modifier
-                .height(16.dp)
-            )
+
             Box(
                 modifier = Modifier
             ) {
@@ -182,7 +197,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                 modifier = Modifier.align(Alignment.Start)
             ) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
                     tint = Color.White
                 )
@@ -205,7 +220,41 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
         }
 
     }
-
+    if (addArticleDialog) {
+        Dialog(
+            onDismissRequest = { addArticleDialog = false }
+        ) {
+            Card {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        IconButton(
+                            onClick = { addArticleDialog = false }
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Close")
+                        }
+                    }
+                    Text("Añade título")
+                    OutlinedTextField(
+                        value = "test",
+                        onValueChange = {
+                            // Handle value change
+                        },
+                        label = { Text("Título") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { /* Handle click on text field */ }
+                    )
+                }
+            }
+        }
+    }
 
     // Fixed footer with "Add" button
 
