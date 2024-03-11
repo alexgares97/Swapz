@@ -44,10 +44,10 @@ class ArticleDetailViewModel (
         navController.popBackStack()
     }
 
-    fun exchange(){
+   /* fun exchange(requester: requester, requested: requested, requestedArticle: requestedArticle, exchangeArticle: exchangeArticle  ){
         TODO("Not yet implemented")
 
-    }
+    }*/
 
 
 

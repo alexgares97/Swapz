@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
@@ -14,10 +15,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -46,6 +50,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -64,6 +69,19 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
     val images = article.carrusel ?: emptyList()
     val pagerState = rememberPagerState(pageCount = { images.size })
     var addArticleDialog by remember { mutableStateOf(false) }
+    var titleFieldValue by remember { mutableStateOf(TextFieldValue()) } // Mutable state variable for text field value
+    var description by remember { mutableStateOf(TextFieldValue()) }
+    var selectedStatus = remember { mutableStateOf(TextFieldValue()) }
+    var value = remember { mutableStateOf(TextFieldValue()) }
+    var category by remember { mutableStateOf(TextFieldValue()) }
+    val statusOptions = listOf("Usado", "Bueno", "Muy bueno", "Excelente", "Sin abrir")
+    var showOptions by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+
+
+
+
 
 
     if (!onClickImg) {
@@ -71,8 +89,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
             topBar = {
                 TopAppBar(
                     title = { Text(text = stringResource(R.string.app_name)) },
-                    actions = {
-                        IconButton(onClick = { viewModel.signOut() })
+                    actions = {IconButton(onClick = { viewModel.signOut() })
                         {
                             Box(
                                 Modifier
@@ -90,7 +107,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                 )
                             }
                         }
-                        IconButton(onClick = {viewModel.home()})
+                        IconButton(onClick = { viewModel.home() })
                         {
                             Box(
                                 Modifier
@@ -98,7 +115,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(Color.Green)
 
-                            ){
+                            ) {
                                 Icon(
                                     Icons.Filled.Home,
                                     contentDescription = null,
@@ -106,7 +123,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                     modifier = Modifier
                                         .padding(4.dp)
                                         .align(Alignment.Center)
-                                    )
+                                )
                             }
                         }
                     }
@@ -140,25 +157,31 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
                     modifier = Modifier.align(Alignment.Start)
                 )
-                Spacer(modifier = Modifier
-                    .height(16.dp)
+                Spacer(
+                    modifier = Modifier
+                        .height(16.dp)
                 )
                 Button(
-                    onClick = { viewModel.exchange() },
+                    onClick = {
+                        val requester = ""// Get the requester user
+                        val requested = ""// Get the requested user
+                        val requestedArticle = "" // Get the article requested by the requester
+                        val exchangeArticle = ""// Get the article to be exchanged by the requested
+                        //viewModel.exchange(requester, requested, requestedArticle, exchangeArticle)
+                    },
                     modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Text(text = "Intercambiar", color = Color.White)
-                }
-
+                ) { Text(text = "Intercambiar", color = Color.White) }
             }
 
-            Box(
-                modifier = Modifier
-            ) {
+            Box(modifier = Modifier)
+            {
                 Row(
                     modifier = Modifier
                         .padding(top = 800.dp)
-                        .background(Color.Gray.copy(alpha = 0.1f), shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                        .background(
+                            Color.Gray.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                        )
                 ) {
                     IconButton(
                         onClick = { addArticleDialog = true },
@@ -207,7 +230,9 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     Image(
                         painter = rememberAsyncImagePainter(images[page]),
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize().background(Color.Black),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black),
                         contentScale = ContentScale.Fit
                     )
                 }
@@ -221,9 +246,9 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
 
     }
     if (addArticleDialog) {
-        Dialog(
-            onDismissRequest = { addArticleDialog = false }
-        ) {
+
+        Dialog(onDismissRequest = { addArticleDialog = false })
+        {
             Card {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -240,25 +265,98 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                             Icon(Icons.Default.Close, contentDescription = "Close")
                         }
                     }
-                    Text("Añade título")
+                   // Text("Añade título")
                     OutlinedTextField(
-                        value = "test",
-                        onValueChange = {
-                            // Handle value change
-                        },
+                        value = titleFieldValue,
+                        onValueChange = { titleFieldValue = it },
                         label = { Text("Título") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { /* Handle click on text field */ }
+                            .clickable { }
                     )
+                   // Text("Añade descripción")
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Descripción") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { }
+                    )
+                    Box(
+                        modifier = Modifier
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) {
+                                expanded = true
+                            }
+                    ){
+                        OutlinedTextField(
+                            value = selectedStatus.value.text,
+                            onValueChange = { newValue ->
+                                selectedStatus.value = TextFieldValue(newValue)
+                            }, // Disable editing
+                            label = { Text("Estado") },
+                            enabled = false,
+                            interactionSource = interactionSource,
+                            modifier = Modifier
+                                .clickable { expanded = true}
+                        )
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier,
+                        ) {
+                            statusOptions.forEach { option ->
+                                DropdownMenuItem(onClick = {
+                                    selectedStatus.value = TextFieldValue(option)
+                                    expanded = false
+                                }) {
+                                    Text(option)
+                                }
+                            }
+                        }
+                    }
+                    //Text("Añade valor nuevo")
+                    OutlinedTextField(
+                        value = value.value,
+                        onValueChange = { value.value = it },
+                        label = { Text("Valor Nuevo") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { }
+                    )
+                    //Text("Añade categoría")
+                    OutlinedTextField(
+                        value = category,
+                        onValueChange = { category = it },
+                        label = { Text("Categoría") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { }
+                    )
+                    Button(
+                        onClick = {
+                            /*onArticleSubmitted(
+                            titleFieldValue,
+                            description,
+                            estadoOptions.getOrNull(estadoSelectedIndex) ?: "",
+                            newValue,
+                            category
+                        )
+                        onDismissRequest()*/
+                        },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text(text = "Submit")
+                    }
                 }
             }
         }
     }
-
-    // Fixed footer with "Add" button
-
 }
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
