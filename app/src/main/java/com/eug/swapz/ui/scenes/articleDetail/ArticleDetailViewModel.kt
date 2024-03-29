@@ -50,7 +50,7 @@ class ArticleDetailViewModel (
         status: String,
         cat: String,
         value: Int?,
-        img: String
+        img: List<String>
     ) {
         val articleRef = FirebaseDatabase.getInstance().getReference("articles")
 
@@ -71,11 +71,14 @@ class ArticleDetailViewModel (
                 newArticleRef.child("status").setValue(status)
                 newArticleRef.child("cat").setValue(cat)
                 newArticleRef.child("value").setValue(value)
-                //newArticleRef.child("img").setValue(img)
-                val carruselRef = newArticleRef.child("carrusel")
-                carruselRef.push().setValue(img)
 
-               // value?.let { newArticleRef.child("value").setValue(it) } // Only set if value is not null
+                // Add each image URL to the "carrusel" node with incremental indices
+                val carruselRef = newArticleRef.child("carrusel")
+                img.forEachIndexed { index, imageUrl ->
+                    carruselRef.child(index.toString()).setValue(imageUrl)
+                }
+
+                // value?.let { newArticleRef.child("value").setValue(it) } // Only set if value is not null
                 // Article added successfully
                 Log.d(TAG, "Article added successfully")
                 // You can perform any necessary actions here
@@ -87,6 +90,7 @@ class ArticleDetailViewModel (
                 // You can handle the error appropriately, e.g., show an error message to the user
             }
         })
+
     }
 
     private fun getNextArticleKey(lastArticleKey: String?): String {

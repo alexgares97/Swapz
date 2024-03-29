@@ -11,6 +11,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -93,7 +95,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
     var openCameraEvent by remember { mutableStateOf(false) }
 
     val interactionSource = remember { MutableInteractionSource() }
-    var imageUrl = remember { mutableStateOf(TextFieldValue()) }
+    var imageUrl = remember { mutableStateOf(emptyList<TextFieldValue>()) }
 
 
     Scaffold(
@@ -188,7 +190,8 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     selectedStatus.value.text,
                     selectedCat.value.text,
                     value.value.text.toIntOrNull(),
-                    imageUrl.value.text)
+                    imageUrl.value.map { it.text } // Pass the list of image URLs
+                )
 
             },
             onOpenCameraEvent = { openCameraEvent = true }
@@ -318,7 +321,7 @@ private fun AddArticleDialog(
     category: TextFieldValue,
     catOptions: List<String>,
     statusOptions: List<String>,
-    imageUrl: MutableState<TextFieldValue>,
+    imageUrl: MutableState<List<TextFieldValue>>, // Updated parameter
     interactionSource: MutableInteractionSource,
     expandedCat: MutableState<Boolean>,
     expandedStatus: MutableState<Boolean>,
@@ -341,7 +344,8 @@ private fun AddArticleDialog(
             val taskSnapshot = uploadTask.await()
             val downloadUrl = taskSnapshot.storage.downloadUrl.await()
             if (downloadUrl != null) {
-                imageUrl.value = TextFieldValue(downloadUrl.toString()) // Use TextFieldValue to wrap the downloadUrl
+                imageUrl.value = imageUrl.value + TextFieldValue(downloadUrl.toString())
+
             }
         }
         val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
@@ -464,6 +468,20 @@ private fun AddArticleDialog(
                         label = { Text("Valor Nuevo") },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    LazyRow {
+                        items(imageUrl.value) { imageUrl ->
+                            if (imageUrl.text.isNotBlank()) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(imageUrl.text),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(100.dp) // Adjust size as needed
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .padding(horizontal = 4.dp)
+                                )
+                            }
+                        }
+                    }
 
                     IconButton(
                         onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA)},
