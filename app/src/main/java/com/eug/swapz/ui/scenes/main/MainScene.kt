@@ -109,7 +109,7 @@ fun MainScene(viewModel: MainViewModel) {
                             .clickable { viewModel.navigateToDetail(article) }
                     ) {
                         Image(
-                            painter = rememberAsyncImagePainter(article.img),
+                            painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(200.dp)
