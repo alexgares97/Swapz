@@ -1,14 +1,12 @@
-package com.eug.swapz.ui.scenes.main
+package com.eug.swapz.ui.scenes.addarticle
 
 import android.content.ContentValues
+import android.content.Context
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.eug.swapz.AppRoutes
-import com.eug.swapz.datasources.MainDataSource
 import com.eug.swapz.datasources.SessionDataSource
 import com.eug.swapz.models.Article
 import com.google.firebase.database.DataSnapshot
@@ -17,52 +15,27 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.launch
 
-class MainViewModel(
+class AddArticleViewModel (
     private val navController: NavController,
     private val sessionDataSource: SessionDataSource,
-    private val mainDataSource: MainDataSource
-) : ViewModel() {
-    private val _articles = MutableLiveData<List<Article>>()
-    val articles: LiveData<List<Article>> = _articles
 
-    fun fetch(){
-        viewModelScope.launch {
-            val articleList = mainDataSource.fetch()
-            _articles.value = articleList
-            subscribe()
-        }
-    }
+    ) : ViewModel() {
 
-    fun subscribe(){
-        viewModelScope.launch {
-            mainDataSource.subscribe {
-                _articles.value = it
-            }
-        }
-    }
 
+    // Function to update the image URI
     fun signOut() {
         viewModelScope.launch {
             sessionDataSource.signOutUser()
-            navController.navigate(AppRoutes.LOGIN.value){
-                popUpTo(AppRoutes.MAIN.value){
+            navController.navigate(AppRoutes.LOGIN.value) {
+                popUpTo(AppRoutes.MAIN.value) {
                     inclusive = true
                 }
             }
         }
     }
 
-    fun navigateToDetail(article: Article){
-        viewModelScope.launch {
-            Log.d("Navigating to category", ""+article.id)
-            navController.navigate(AppRoutes.ARTICLE_DETAIL.value+"/"+article.id)
-        }
-    }
-    fun navigateToAddArticle(){
-        viewModelScope.launch {
-            Log.d("Navigating to Add Article", "")
-            navController.navigate(AppRoutes.ADD_ARTICLE.value)
-        }
+    fun home() {
+        navController.popBackStack()
     }
 
     fun addArticle(title: String, desc: String, status: String, cat: String, value: Int?, img: List<String>)
@@ -120,4 +93,5 @@ class MainViewModel(
 
         return nextKey
     }
+
 }

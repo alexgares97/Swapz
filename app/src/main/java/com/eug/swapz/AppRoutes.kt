@@ -6,4 +6,5 @@ enum class AppRoutes(val value: String) {
     //REGISTER("Register"),
     MAIN("Main"),
     ARTICLE_DETAIL("ArticleDetail"),
+    ADD_ARTICLE("AddArticle")
 }

@@ -1,12 +1,6 @@
 package com.eug.swapz
 
-import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -19,10 +13,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.eug.swapz.datasources.MainDataSource
 import com.eug.swapz.datasources.SessionDataSource
+import com.eug.swapz.ui.scenes.addarticle.AddArticleFactory
 import com.eug.swapz.ui.scenes.articleDetail.ArticleDetailFactory
 import com.eug.swapz.ui.scenes.intro.IntroFactory
 import com.eug.swapz.ui.scenes.login.LoginFactory
-import com.eug.swapz.ui.scenes.main.MainListSceneFactory
+import com.eug.swapz.ui.scenes.main.MainSceneFactory
 import com.eug.swapz.ui.theme.SwapzTheme
 import com.google.firebase.database.FirebaseDatabase
 
@@ -37,10 +32,11 @@ fun MyApp() {
     val introFactory = IntroFactory(navController)
     //LoginScene
     val loginFactory = LoginFactory(navController, sessionDataSource)
-    val mainListSceneFactory =
-        MainListSceneFactory(navController, sessionDataSource, mainDataSource)
+    val mainSceneFactory =
+        MainSceneFactory(navController, sessionDataSource, mainDataSource)
     //registerSceneFactory = RegisterSceneFactory(navController, sessionDataSource, capsulesDataSource)
     val articleDetailFactory = ArticleDetailFactory(navController, mainDataSource, sessionDataSource)
+    val addArticleFactory = AddArticleFactory(navController, sessionDataSource)
 
     val startDestination =
         if (sessionDataSource.isLoggedIn()) AppRoutes.MAIN.value else AppRoutes.INTRO.value
@@ -68,7 +64,7 @@ fun MyApp() {
             composable(
                 AppRoutes.MAIN.value
             ) {
-                mainListSceneFactory.create(null)
+                mainSceneFactory.create(null)
 
             }
 
@@ -87,6 +83,12 @@ fun MyApp() {
                 val id: String = it.arguments?.getString("id")!!
                 articleDetailFactory.create(id = id)
             }
+            composable(
+                AppRoutes.ADD_ARTICLE.value
+            ){
+                addArticleFactory.create(null)
+            }
+
         }
     }
 }
