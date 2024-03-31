@@ -60,12 +60,18 @@ import com.eug.swapz.models.Article
 @Composable
 fun MainScene(viewModel: MainViewModel) {
     val articles by viewModel.articles.observeAsState(emptyList())
+    var searchText by remember { mutableStateOf(String()) }
     var filteredArticles by remember { mutableStateOf(emptyList<Article>()) }
-    var searchText by remember { mutableStateOf("") }
     // Loads
     LaunchedEffect(viewModel) {
         viewModel.fetch()
     }
+    LaunchedEffect(searchText) {
+        performSearch(articles, searchText) { searchResults ->
+            filteredArticles = searchResults
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -76,20 +82,9 @@ fun MainScene(viewModel: MainViewModel) {
                         onValueChange = { searchText = it },
                         label = { Text("Buscar en Swapz") },
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
-                            .height(56.dp) // Increase the height to make it more visible
-                            .fillMaxWidth(), // Take full width of the screen
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                // Perform search when the user hits the Done button on the keyboard
-                                performSearch(articles, searchText) { searchResults ->
-                                    filteredArticles = searchResults
-                                }
-                            }
-                        )
+                            .padding(horizontal = 17.dp)
+                            //.height(30.dp) // Increase the height to make it more visible
+                            , // Take full width of the screen
                     )
                     IconButton(onClick = { viewModel.home() }) {
                         Box(
@@ -133,54 +128,109 @@ fun MainScene(viewModel: MainViewModel) {
 
         Box(modifier = Modifier.fillMaxSize())
         {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 128.dp)
-            ) {
-                items(
-                    items = articles,
-                    itemContent = { article ->
-                        Column(
-                            Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { viewModel.navigateToDetail(article) }
-                        ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(200.dp)
-                                    .padding(top = 70.dp, start = 12.dp, end = 12.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop,
-                            )
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
+            if (filteredArticles.isEmpty()) {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 128.dp)
+                ) {
+                    items(
+                        items = articles,
+                        itemContent = { article ->
+                            Column(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { viewModel.navigateToDetail(article) }
                             ) {
-                                val max_title_length = 19 // Define your maximum text length threshold
+                                Image(
+                                    painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(200.dp)
+                                        .padding(top = 70.dp, start = 12.dp, end = 12.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop,
+                                )
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    val max_title_length =
+                                        19 // Define your maximum text length threshold
+                                    Text(
+                                        text = if (article.title.length <= max_title_length) {
+                                            article.title
+                                        } else {
+                                            "${article.title.take(max_title_length)}..."
+                                        },
+                                        style = TextStyle(
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold
+                                        ),
+                                        modifier = Modifier.padding(start = 13.dp, end = 10.dp),
+                                        maxLines = 1
+                                    )
+                                }
                                 Text(
-                                    text = if (article.title.length <= max_title_length) {
-                                        article.title
-                                    } else {
-                                        "${article.title.take(max_title_length)}..."
-                                    },
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    modifier = Modifier.padding(start = 13.dp, end = 10.dp),
-                                    maxLines = 1
+                                    text = article.value.toString() + " €",
+                                    style = TextStyle(fontSize = 10.sp),
+                                    modifier = Modifier.padding(start = 14.dp)
                                 )
                             }
-                            Text(
-                                text = article.value.toString() + " €",
-                                style = TextStyle(fontSize = 10.sp),
-                                modifier = Modifier.padding(start = 14.dp)
-                            )
                         }
-                    }
-                )
+                    )
+                }
+            }else {
+                // Display search results if there are any
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 128.dp)
+                ) {
+                    items(
+                        items = filteredArticles,
+                        itemContent = { article ->
+                            Column(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { viewModel.navigateToDetail(article) }
+                            ) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(200.dp)
+                                        .padding(top = 70.dp, start = 12.dp, end = 12.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop,
+                                )
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    val max_title_length =
+                                        19 // Define your maximum text length threshold
+                                    Text(
+                                        text = if (article.title.length <= max_title_length) {
+                                            article.title
+                                        } else {
+                                            "${article.title.take(max_title_length)}..."
+                                        },
+                                        style = TextStyle(
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold
+                                        ),
+                                        modifier = Modifier.padding(start = 13.dp, end = 10.dp),
+                                        maxLines = 1
+                                    )
+                                }
+                                Text(
+                                    text = article.value.toString() + " €",
+                                    style = TextStyle(fontSize = 10.sp),
+                                    modifier = Modifier.padding(start = 14.dp)
+                                )
+                            }
+                        }
+                    )
+                }
             }
             Row(
                 modifier = Modifier
@@ -201,7 +251,7 @@ fun MainScene(viewModel: MainViewModel) {
                     Icon(
                         Icons.Filled.AddBox,
                         contentDescription = null,
-                       // tint = Color.White,
+                        // tint = Color.White,
                         modifier = Modifier.align(Alignment.Center)
                             .size(50.dp)// Center icon within Box
                     )
