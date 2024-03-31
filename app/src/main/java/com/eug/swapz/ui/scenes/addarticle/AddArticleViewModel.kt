@@ -42,18 +42,22 @@ class AddArticleViewModel (
             navController.navigate(AppRoutes.MAIN.value)
         }
     }
-    /*private fun getCurrentUserId(): String? {
+    fun navigateToAddArticle(){
+        viewModelScope.launch {
+            Log.d("Navigating to Add Article", "")
+            navController.navigate(AppRoutes.ADD_ARTICLE.value)
+        }
+    }
+    private fun getCurrentUserId(): String? {
         return sessionDataSource.getCurrentUserId()
-    }*/
+    }
 
 
     fun addArticle(title: String, desc: String, status: String, cat: String, value: Int?, img: List<String>)
     {
         val articleRef = FirebaseDatabase.getInstance().getReference("articles")
-
         // Get a reference to the articles node
         val articlesQuery = articleRef.orderByKey().limitToLast(1)
-
         articlesQuery.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 // Retrieve the key of the last article
@@ -74,11 +78,7 @@ class AddArticleViewModel (
                 img.forEachIndexed { index, imageUrl ->
                     carruselRef.child(index.toString()).setValue(imageUrl)
                 }
-
-                // value?.let { newArticleRef.child("value").setValue(it) } // Only set if value is not null
-                // Article added successfully
                 Log.d(ContentValues.TAG, "Article added successfully")
-                // You can perform any necessary actions here
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -89,7 +89,6 @@ class AddArticleViewModel (
         })
 
     }
-
     private fun getNextArticleKey(lastArticleKey: String?): String {
         var nextKey = "art01" // Default key if there are no existing articles
 
@@ -99,7 +98,6 @@ class AddArticleViewModel (
             val nextNumericPart = numericPart + 1
             nextKey = "art${String.format("%02d", nextNumericPart)}"
         }
-
         return nextKey
     }
 

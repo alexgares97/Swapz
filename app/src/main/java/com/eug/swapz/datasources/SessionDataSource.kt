@@ -23,6 +23,13 @@ class SessionDataSource : ISessionDataSource{
 
         return auth.currentUser
     }
+    fun getCurrentUserId(): String? {
+        // Get the currently authenticated user from Firebase Authentication
+        val currentUser = auth.currentUser
+
+        // If the current user is not null, return their user ID
+        return currentUser?.uid
+    }
 
     override fun isLoggedIn(): Boolean {
         // Check if the current user is null (i.e., no user is logged in)

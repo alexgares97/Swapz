@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -36,6 +38,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.filled.AddBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -155,148 +158,184 @@ fun AddArticle(viewModel: AddArticleViewModel){
         }
     )
     {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 50.dp, vertical = 100.dp) // Add vertical padding/margin
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.spacedBy(8.dp) // Add spacing between items
-        ) {
-            TextField(
-                value = titleFieldValue.value,
-                onValueChange = {titleFieldValue.value = it},
-                label = { Text("Title") },
-                modifier = Modifier.fillMaxWidth()
-            )
+        Box(modifier = Modifier.fillMaxSize()) {
 
-            // Description text field
-            OutlinedTextField(
-                value = descFieldValue.value,
-                onValueChange = {descFieldValue.value = it},
-                label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Box(
+            Column(
                 modifier = Modifier
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null
-                    ) {
-                        expandedStatus.value = true
-                    }
-            ){
-                OutlinedTextField(
-                    value = selectedStatus.value.text,
-                    onValueChange = { newValue ->
-                        selectedStatus.value = TextFieldValue(newValue)
-                    }, // Disable editing
-                    label = { Text("Estado") },
-                    enabled = false,
-                    interactionSource = interactionSource,
+                    .padding(horizontal = 50.dp, vertical = 100.dp) // Add vertical padding/margin
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(8.dp) // Add spacing between items
+            ) {
+                TextField(
+                    value = titleFieldValue.value,
+                    onValueChange = { titleFieldValue.value = it },
+                    label = { Text("Título") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Description text field
+                TextField(
+                    value = descFieldValue.value,
+                    onValueChange = { descFieldValue.value = it },
+                    label = { Text("Descripción") },
                     modifier = Modifier
-                        .clickable { expandedStatus.value = true}
+                        .fillMaxWidth()
+                        .height(120.dp), // Adjust the height as needed
+                    singleLine = false, // Allow multiple lines
+                    maxLines = 3
                 )
-                DropdownMenu(
-                    expanded = expandedStatus.value,
-                    onDismissRequest = { expandedStatus.value = false },
-                    modifier = Modifier,
-                ) {
-                    statusOptions.forEach { option ->
-                        DropdownMenuItem(onClick = {
-                            selectedStatus.value = TextFieldValue(option)
-                            expandedStatus.value = false
-                        }) {
-                            Text(option)
+                Box(
+                    modifier = Modifier
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) {
+                            expandedStatus.value = true
                         }
-                    }
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .clickable(
+                ) {
+                    TextField(
+                        value = selectedStatus.value.text,
+                        onValueChange = { newValue ->
+                            selectedStatus.value = TextFieldValue(newValue)
+                        }, // Disable editing
+                        label = { Text("Estado") },
+                        enabled = false,
                         interactionSource = interactionSource,
-                        indication = null
+                        modifier = Modifier
+                            .clickable { expandedStatus.value = true }
+                            .fillMaxWidth()
+
+                    )
+                    DropdownMenu(
+                        expanded = expandedStatus.value,
+                        onDismissRequest = { expandedStatus.value = false },
+                        modifier = Modifier,
                     ) {
-                        expandedCat.value = true
-                    }
-            ) {
-                //Text("Añade categoría")
-                OutlinedTextField(
-                    value = selectedCat.value.text,
-                    onValueChange = { newValue ->
-                        selectedCat.value = TextFieldValue(newValue)
-                    },
-                    label = { Text("Categoría") },
-                    enabled = false,
-                    interactionSource = interactionSource,
-                    modifier = Modifier.clickable { expandedCat.value = true }
-                )
-                DropdownMenu(
-                    expanded = expandedCat.value,
-                    onDismissRequest = { expandedCat.value = false },
-                    modifier = Modifier,
-                ) {
-                    catOptions.forEach { option ->
-                        DropdownMenuItem(onClick = {
-                            selectedCat.value = TextFieldValue(option)
-                            expandedCat.value = false
-                        }) {
-                            Text(option)
+                        statusOptions.forEach { option ->
+                            DropdownMenuItem(onClick = {
+                                selectedStatus.value = TextFieldValue(option)
+                                expandedStatus.value = false
+                            }) {
+                                Text(option)
+                            }
                         }
                     }
                 }
-            }
-            OutlinedTextField(
-                value = value.value,
-                onValueChange = { value.value = it},
-                label = { Text("Valor Nuevo") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            LazyRow {
-                items(imageUrl.value) { imageUrl ->
-                    if (imageUrl.text.isNotBlank()) {
-                        Image(
-                            painter = rememberAsyncImagePainter(imageUrl.text),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(100.dp) // Adjust size as needed
-                                .clip(RoundedCornerShape(4.dp))
-                                .padding(horizontal = 4.dp)
-                        )
+                Box(
+                    modifier = Modifier
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) {
+                            expandedCat.value = true
+                        }
+                ) {
+                    //Text("Añade categoría")
+                    TextField(
+                        value = selectedCat.value.text,
+                        onValueChange = { newValue ->
+                            selectedCat.value = TextFieldValue(newValue)
+                        },
+                        label = { Text("Categoría") },
+                        enabled = false,
+                        interactionSource = interactionSource,
+                        modifier = Modifier
+                            .clickable { expandedCat.value = true }
+                            .fillMaxWidth()
+                    )
+                    DropdownMenu(
+                        expanded = expandedCat.value,
+                        onDismissRequest = { expandedCat.value = false },
+                        modifier = Modifier,
+                    ) {
+                        catOptions.forEach { option ->
+                            DropdownMenuItem(onClick = {
+                                selectedCat.value = TextFieldValue(option)
+                                expandedCat.value = false
+                            }) {
+                                Text(option)
+                            }
+                        }
                     }
                 }
-            }
-
-            IconButton(
-                onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA)},
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Icon(
-                    Icons.Default.PhotoCamera,
-                    contentDescription = null,
-                    Modifier.size(50.dp)
+                TextField(
+                    value = value.value,
+                    onValueChange = { value.value = it },
+                    label = { Text("Valor Nuevo") },
+                    modifier = Modifier.fillMaxWidth()
                 )
+                LazyRow {
+                    items(imageUrl.value) { imageUrl ->
+                        if (imageUrl.text.isNotBlank()) {
+                            Image(
+                                painter = rememberAsyncImagePainter(imageUrl.text),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(100.dp) // Adjust size as needed
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 4.dp)
+                            )
+                        }
+                    }
+                }
+
+                IconButton(
+                    onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Icon(
+                        Icons.Default.PhotoCamera,
+                        contentDescription = null,
+                        Modifier.size(50.dp)
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                ) {
+                    Button(
+                        onClick = {
+                            // Perform the actions when the button is clicked
+                            addArticleDialog = false
+                            viewModel.addArticle(
+                                titleFieldValue.value.text,
+                                descFieldValue.value.text,
+                                selectedStatus.value.text,
+                                selectedCat.value.text,
+                                value.value.text.toIntOrNull(),
+                                imageUrl.value.map { it.text }
+                            )
+                            viewModel.navigateToMain()
+                        },
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    ) {
+                        Text(text = "Subir")
+                    }
+                }
             }
             Row(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth()
+                    .background(Color(0xFF6200EE)) // Purple color
+                    .padding(5.dp)
+                    .align(Alignment.BottomCenter),
+                horizontalArrangement = Arrangement.Center, // Center horizontally
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = {
-                        // Perform the actions when the button is clicked
-                        addArticleDialog = false
-                        viewModel.addArticle(
-                            titleFieldValue.value.text,
-                            descFieldValue.value.text,
-                            selectedStatus.value.text,
-                            selectedCat.value.text,
-                            value.value.text.toIntOrNull(),
-                            imageUrl.value.map { it.text }
-                        )
-                        viewModel.navigateToMain()
-                    },
-                    modifier = Modifier.align(Alignment.CenterVertically)
+                Box(
+                    Modifier
+                        .size(30.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.Green)
+                        .clickable { viewModel.navigateToAddArticle() }
                 ) {
-                    Text(text = "Subir")
+                    Icon(
+                        Icons.Filled.AddBox,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.align(Alignment.Center)
+                            .size(50.dp)// Center icon within Box
+                    )
                 }
             }
         }

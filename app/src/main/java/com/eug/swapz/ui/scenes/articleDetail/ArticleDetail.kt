@@ -65,7 +65,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
 
                             Button(
                                 onClick = { /* Handle button click */ },
-                                modifier = Modifier.padding(horizontal = 50.dp)
+                                modifier = Modifier.padding(horizontal = 55.dp)
                                     .align(Alignment.CenterVertically),
                                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
 
@@ -151,7 +151,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.LightGray)
+                        .background(Color(0xFF6200EE)) // Purple color
                         .padding(5.dp)
                         .align(Alignment.BottomCenter),
                     horizontalArrangement = Arrangement.Center, // Center horizontally
@@ -161,13 +161,13 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                         Modifier
                             .size(30.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Color.White)
+                            .background(Color.Green)
                             .clickable { viewModel.navigateToAddArticle() }
                     ) {
                         Icon(
                             Icons.Filled.AddBox,
                             contentDescription = null,
-                            tint = Color.Green,
+                            tint = Color.White,
                             modifier = Modifier.align(Alignment.Center)
                                 .size(50.dp)// Center icon within Box
                         )
