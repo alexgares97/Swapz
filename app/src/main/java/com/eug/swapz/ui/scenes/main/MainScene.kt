@@ -19,13 +19,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.filled.AddBox
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -60,6 +61,23 @@ fun MainScene(viewModel: MainViewModel) {
             TopAppBar(
                 title = { Text(text = stringResource(R.string.app_name)) },
                 actions = {
+                    IconButton(onClick = { viewModel.home() }) {
+                        Box(
+                            Modifier
+                                .size(37.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.Green)
+                        ) {
+                            Icon(
+                                Icons.Filled.Home,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .align(Alignment.Center)
+                            )
+                        }
+                    }
                     IconButton(onClick = { viewModel.signOut() }) {
                         Box(
                             Modifier
@@ -143,7 +161,7 @@ fun MainScene(viewModel: MainViewModel) {
             ) {
                 Box(
                     Modifier
-                        .size(50.dp)
+                        .size(30.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color.White)
                         .clickable { viewModel.navigateToAddArticle() }

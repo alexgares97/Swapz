@@ -76,7 +76,6 @@ class LoginViewModel(
                 }
             }
         }
-
     }
     /*fun navigateToRegister(){
         viewModelScope.launch {

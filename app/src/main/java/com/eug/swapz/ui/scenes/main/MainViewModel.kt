@@ -40,6 +40,9 @@ class MainViewModel(
             }
         }
     }
+    fun home() {
+        navController.popBackStack()
+    }
 
     fun signOut() {
         viewModelScope.launch {

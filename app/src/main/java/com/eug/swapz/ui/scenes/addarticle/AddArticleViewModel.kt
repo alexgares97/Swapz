@@ -37,6 +37,15 @@ class AddArticleViewModel (
     fun home() {
         navController.popBackStack()
     }
+    fun navigateToMain() {
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.MAIN.value)
+        }
+    }
+    /*private fun getCurrentUserId(): String? {
+        return sessionDataSource.getCurrentUserId()
+    }*/
+
 
     fun addArticle(title: String, desc: String, status: String, cat: String, value: Int?, img: List<String>)
     {
