@@ -1,6 +1,7 @@
 package com.eug.swapz.ui.scenes.main
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -62,13 +63,17 @@ fun MainScene(viewModel: MainViewModel) {
     val articles by viewModel.articles.observeAsState(emptyList())
     var searchText by remember { mutableStateOf(String()) }
     var filteredArticles by remember { mutableStateOf(emptyList<Article>()) }
-    // Loads
-    LaunchedEffect(viewModel) {
-        viewModel.fetch()
-    }
-    LaunchedEffect(searchText) {
-        performSearch(articles, searchText) { searchResults ->
+    viewModel.fetch()
+
+    DisposableEffect(searchText) {
+        val onSearchResults: (List<Article>) -> Unit = { searchResults ->
             filteredArticles = searchResults
+        }
+
+        performSearch(articles, searchText, onSearchResults)
+
+        onDispose {
+            // Cleanup logic if needed
         }
     }
 
@@ -252,7 +257,8 @@ fun MainScene(viewModel: MainViewModel) {
                         Icons.Filled.AddBox,
                         contentDescription = null,
                         // tint = Color.White,
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier
+                            .align(Alignment.Center)
                             .size(50.dp)// Center icon within Box
                     )
                 }
@@ -266,9 +272,19 @@ private fun performSearch(
     onSearchResults: (List<Article>) -> Unit
 ) {
     val searchResults = articles.filter { article ->
-        // Filter articles based on title relevance
         article.title.contains(query, ignoreCase = true)
     }
     onSearchResults(searchResults)
+}
+@OptIn(ExperimentalAnimationApi::class)
+@Preview(showBackground = true)
+@Composable
+fun MainScenePreview() {
+    SwapzTheme {
+        LoginFactory(
+            navController = rememberNavController(),
+            sessionDataSource = SessionDataSource()
+        )
+    }
 }
 

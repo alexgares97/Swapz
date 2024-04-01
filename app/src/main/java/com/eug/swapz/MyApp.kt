@@ -11,7 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.eug.swapz.datasources.MainDataSource
+import com.eug.swapz.datasources.ArticlesDataSource
 import com.eug.swapz.datasources.SessionDataSource
 import com.eug.swapz.ui.scenes.addarticle.AddArticleFactory
 import com.eug.swapz.ui.scenes.articleDetail.ArticleDetailFactory
@@ -27,15 +27,15 @@ import com.google.firebase.database.FirebaseDatabase
 fun MyApp() {
     val navController = rememberNavController()
     val sessionDataSource = SessionDataSource()
-    val mainDataSource = MainDataSource(database = FirebaseDatabase.getInstance())
+    val articlesDataSource = ArticlesDataSource(database = FirebaseDatabase.getInstance())
     //WelcomeScene
     val introFactory = IntroFactory(navController)
     //LoginScene
     val loginFactory = LoginFactory(navController, sessionDataSource)
     val mainSceneFactory =
-        MainSceneFactory(navController, sessionDataSource, mainDataSource)
+        MainSceneFactory(navController, sessionDataSource, articlesDataSource)
     //registerSceneFactory = RegisterSceneFactory(navController, sessionDataSource, capsulesDataSource)
-    val articleDetailFactory = ArticleDetailFactory(navController, mainDataSource, sessionDataSource)
+    val articleDetailFactory = ArticleDetailFactory(navController, articlesDataSource, sessionDataSource)
     val addArticleFactory = AddArticleFactory(navController, sessionDataSource)
 
     val startDestination =

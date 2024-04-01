@@ -69,7 +69,7 @@ import java.util.Locale
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddArticle(viewModel: AddArticleViewModel){
+fun AddArticle(viewModel: AddArticleViewModel) {
     var addArticleDialog by remember { mutableStateOf(false) }
     var titleFieldValue = remember { mutableStateOf(TextFieldValue()) }
     val descFieldValue = remember { mutableStateOf(TextFieldValue()) }
@@ -82,6 +82,8 @@ fun AddArticle(viewModel: AddArticleViewModel){
     var expandedStatus = remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     var imageUrl = remember { mutableStateOf(emptyList<TextFieldValue>()) }
+    val context = LocalContext.current
+
 
     suspend fun uploadImageToFirebaseStorage(bitmap: Bitmap) {
         val storage = Firebase.storage
@@ -100,41 +102,25 @@ fun AddArticle(viewModel: AddArticleViewModel){
 
         }
     }
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
-        if (bitmap != null) {
-            // Sube la imagen a Firebase Storage
-            CoroutineScope(Dispatchers.Main).launch {
-                uploadImageToFirebaseStorage(bitmap)
+
+    val cameraLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+            if (bitmap != null) {
+                // Sube la imagen a Firebase Storage
+                CoroutineScope(Dispatchers.Main).launch {
+                    uploadImageToFirebaseStorage(bitmap)
+                }
             }
         }
-    }
 
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) {
-            // Permiso de la cámara concedido, iniciar la actividad de la cámara
-            cameraLauncher.launch(null)
+    val cameraPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                // Permiso de la cámara concedido, iniciar la actividad de la cámara
+                cameraLauncher.launch(null)
+            }
         }
-    }
-    @Composable
-    fun validateInputs(callback: (title: String, desc: String, status: String, cat: String, value: Int, img: String) -> Unit) {
-        val context = LocalContext.current
-        val title = titleFieldValue.value.text
-        val desc = descFieldValue.value.text
-        val status = selectedStatus.value.text
-        val cat = selectedCat.value.text
-        val value = value.value.text.toIntOrNull() ?: 0 // Default value in case parsing fails or text is empty
-        val img = imageUrl.value.toString()
 
-        if (title.isNotEmpty()  && desc.isNotEmpty() && status.isNotEmpty() && cat.isNotEmpty() && value != null && img.isNotEmpty()) {
-            callback(title, desc, status, cat, value, img)
-        } else {
-            Toast.makeText(
-                context,
-                "Rellena todos los campos.",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -319,16 +305,33 @@ fun AddArticle(viewModel: AddArticleViewModel){
                 ) {
                     Button(
                         onClick = {
-                            addArticleDialog = false
-                            validateInputs() { title, desc, status, cat, value,img ->
-
-                                // Perform the actions when the button is clicked
+                            // Perform validation before submitting
+                            if (titleFieldValue.value.text.isEmpty() ||
+                                descFieldValue.value.text.isEmpty() ||
+                                selectedStatus.value.text.isEmpty() ||
+                                selectedCat.value.text.isEmpty() ||
+                                value.value.text.isEmpty() ||
+                                imageUrl.value.any { it.text.isBlank() }
+                            ) {
+                                // Show toast message if any field is empty or value is invalid
+                                Toast.makeText(
+                                    context,
+                                    "Rellena todos los campos.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                // Validation passed, proceed with submission
+                                addArticleDialog = false
                                 viewModel.addArticle(
-                                    title, desc, status, cat, value, listOf(img)
+                                    titleFieldValue.value.text,
+                                    descFieldValue.value.text,
+                                    selectedStatus.value.text,
+                                    selectedCat.value.text,
+                                    value.value.text.toIntOrNull(),
+                                    imageUrl.value.map { it.text }
                                 )
+                                viewModel.navigateToMain()
                             }
-                            viewModel.navigateToMain()
-
                         },
                         modifier = Modifier.align(Alignment.CenterVertically)
                     ) {
@@ -356,8 +359,7 @@ fun AddArticle(viewModel: AddArticleViewModel){
                         Icons.Filled.AddBox,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center)
                             .size(50.dp)// Center icon within Box
                     )
                 }

@@ -11,8 +11,8 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class MainDataSource(private val database: FirebaseDatabase) : IMainDataSource {
-    private var articles: List<Article> = mutableListOf<Article>()
+class ArticlesDataSource(private val database: FirebaseDatabase) : IMainDataSource {
+    private var articles: List<Article> = mutableListOf()
 
     fun subscribe(callback: (List<Article>) -> Unit)  {
         val ref = database.getReference("articles")
