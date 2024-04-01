@@ -287,4 +287,8 @@ fun MainScenePreview() {
         )
     }
 }
+@Preview
+@Composable
+fun test(){
 
+}

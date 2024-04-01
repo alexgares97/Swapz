@@ -40,6 +40,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -120,6 +121,10 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                 cameraLauncher.launch(null)
             }
         }
+    fun deleteImg(imageUrlToDelete: TextFieldValue) {
+        // Remove the corresponding photo URL from the list
+        imageUrl.value = imageUrl.value.filter { it != imageUrlToDelete }
+    }
 
 
     Scaffold(
@@ -285,6 +290,19 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                                     .clip(RoundedCornerShape(4.dp))
                                     .padding(horizontal = 4.dp)
                             )
+                            IconButton(
+                                onClick = {
+                                    // Remove the corresponding photo URL from the list
+                                    deleteImg(imageUrl)
+                                },
+                                modifier = Modifier.align(Alignment.Start)
+                            ) {
+                                Icon(
+                                    Icons.Default.Clear,
+                                    contentDescription = null,
+                                    Modifier.size(24.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -367,5 +385,6 @@ fun AddArticle(viewModel: AddArticleViewModel) {
         }
     }
 }
+
 
 

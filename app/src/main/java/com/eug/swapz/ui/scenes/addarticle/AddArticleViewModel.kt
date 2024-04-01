@@ -3,6 +3,10 @@ package com.eug.swapz.ui.scenes.addarticle
 import android.content.ContentValues
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -20,6 +24,7 @@ class AddArticleViewModel (
     private val sessionDataSource: SessionDataSource,
 
     ) : ViewModel() {
+    var imageUrl by mutableStateOf(emptyList<String>())
 
 
     // Function to update the image URI
@@ -51,7 +56,6 @@ class AddArticleViewModel (
     private fun getCurrentUserId(): String? {
         return sessionDataSource.getCurrentUserId()
     }
-
 
     fun addArticle(title: String, desc: String, status: String, cat: String, value: Int?, img: List<String>)
     {
