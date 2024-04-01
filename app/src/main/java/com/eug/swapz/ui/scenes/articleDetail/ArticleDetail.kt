@@ -141,7 +141,17 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                             .padding(vertical = 8.dp)
                     )
                     Text(
-                        text = "${article.value} €",
+                        text = "Estado: ${article.status}",
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                    Text(
+                        text = "Categoria: ${article.cat}",
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                    Text(
+                        text = "Valor: ${article.value} €",
                         style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
                         modifier = Modifier.align(Alignment.Start)
                     )

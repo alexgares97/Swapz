@@ -3,6 +3,7 @@ package com.eug.swapz.ui.scenes.addarticle
 import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -48,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -78,9 +80,9 @@ fun AddArticle(viewModel: AddArticleViewModel){
     val statusOptions = listOf("Usado", "Bueno", "Muy bueno", "Excelente", "Sin abrir")
     var expandedCat = remember { mutableStateOf(false) }
     var expandedStatus = remember { mutableStateOf(false) }
-    var openCameraEvent by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     var imageUrl = remember { mutableStateOf(emptyList<TextFieldValue>()) }
+
     suspend fun uploadImageToFirebaseStorage(bitmap: Bitmap) {
         val storage = Firebase.storage
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -94,7 +96,7 @@ fun AddArticle(viewModel: AddArticleViewModel){
         val taskSnapshot = uploadTask.await()
         val downloadUrl = taskSnapshot.storage.downloadUrl.await()
         if (downloadUrl != null) {
-            imageUrl.value = imageUrl.value + TextFieldValue(downloadUrl.toString())
+            imageUrl.value += TextFieldValue(downloadUrl.toString())
 
         }
     }
@@ -113,13 +115,34 @@ fun AddArticle(viewModel: AddArticleViewModel){
             cameraLauncher.launch(null)
         }
     }
+    @Composable
+    fun validateInputs(callback: (title: String, desc: String, status: String, cat: String, value: Int, img: String) -> Unit) {
+        val context = LocalContext.current
+        val title = titleFieldValue.value.text
+        val desc = descFieldValue.value.text
+        val status = selectedStatus.value.text
+        val cat = selectedCat.value.text
+        val value = value.value.text.toIntOrNull() ?: 0 // Default value in case parsing fails or text is empty
+        val img = imageUrl.value.toString()
+
+        if (title.isNotEmpty()  && desc.isNotEmpty() && status.isNotEmpty() && cat.isNotEmpty() && value != null && img.isNotEmpty()) {
+            callback(title, desc, status, cat, value, img)
+        } else {
+            Toast.makeText(
+                context,
+                "Rellena todos los campos.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(text = stringResource(R.string.app_name)) },
                 actions = {
 
-                    IconButton(onClick = { viewModel.home() }) {
+                    IconButton(onClick = { viewModel.navigateToMain() }) {
                         Box(
                             Modifier
                                 .size(37.dp)
@@ -158,6 +181,7 @@ fun AddArticle(viewModel: AddArticleViewModel){
         }
     )
     {
+
         Box(modifier = Modifier.fillMaxSize()) {
 
             Column(
@@ -295,17 +319,16 @@ fun AddArticle(viewModel: AddArticleViewModel){
                 ) {
                     Button(
                         onClick = {
-                            // Perform the actions when the button is clicked
                             addArticleDialog = false
-                            viewModel.addArticle(
-                                titleFieldValue.value.text,
-                                descFieldValue.value.text,
-                                selectedStatus.value.text,
-                                selectedCat.value.text,
-                                value.value.text.toIntOrNull(),
-                                imageUrl.value.map { it.text }
-                            )
+                            validateInputs() { title, desc, status, cat, value,img ->
+
+                                // Perform the actions when the button is clicked
+                                viewModel.addArticle(
+                                    title, desc, status, cat, value, listOf(img)
+                                )
+                            }
                             viewModel.navigateToMain()
+
                         },
                         modifier = Modifier.align(Alignment.CenterVertically)
                     ) {
@@ -333,7 +356,8 @@ fun AddArticle(viewModel: AddArticleViewModel){
                         Icons.Filled.AddBox,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier
+                            .align(Alignment.Center)
                             .size(50.dp)// Center icon within Box
                     )
                 }
@@ -341,3 +365,5 @@ fun AddArticle(viewModel: AddArticleViewModel){
         }
     }
 }
+
+
