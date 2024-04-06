@@ -20,9 +20,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -97,63 +101,103 @@ fun MainScene(viewModel: MainViewModel) {
             }
         }
     ) {
+            Spacer(modifier = Modifier.height(20.dp))
 
 
         Box(modifier = Modifier.fillMaxSize())
 
         {
             if (filteredArticles.isEmpty()) {
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 128.dp)
-                ) {
-                    items(
-                        items = articles,
-                        itemContent = { article ->
-                            Column(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { viewModel.navigateToDetail(article) }
-                            ) {
-                                Image(
-                                    painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(200.dp)
-                                        .padding(top = 70.dp, start = 12.dp, end = 12.dp)
-                                        .clip(RoundedCornerShape(8.dp)),
-                                    contentScale = ContentScale.Crop,
-                                )
+                val articlesByCategory = articles.groupBy { it.cat }
 
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    val max_title_length =
-                                        19 // Define your maximum text length threshold
-                                    Text(
-                                        text = if (article.title.length <= max_title_length) {
-                                            article.title
-                                        } else {
-                                            "${article.title.take(max_title_length)}..."
-                                        },
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold
-                                        ),
-                                        modifier = Modifier.padding(start = 13.dp, end = 10.dp),
-                                        maxLines = 1
-                                    )
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                        .padding(top = 60.dp) // Add padding to the top
+
+                ) {
+                    articlesByCategory.forEach { (category, categoryArticles) ->
+                        // Display category text first
+                        item {
+                            Text(
+                                text = category ?: "Other",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                ),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
+
+                        // Then display the row of articles
+                        item {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                categoryArticles.take(3).forEach { article ->
+                                    item {
+                                        val cellSize = 128.dp // Default cell size
+
+                                        Box(
+                                            Modifier
+                                                .size(cellSize)
+                                                .padding(horizontal = 8.dp)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .clickable { viewModel.navigateToDetail(article) }
+                                        ) {
+                                            // Content of each article
+                                            Column(
+                                                Modifier.fillMaxSize(),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Image(
+                                                    painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(180.dp)
+                                                        .clip(RoundedCornerShape(8.dp)),
+                                                    contentScale = ContentScale.Crop,
+                                                )
+
+                                                Text(
+                                                    text = if (article.title.length <= 19) {
+                                                        article.title
+                                                    } else {
+                                                        "${article.title.take(19)}..."
+                                                    },
+                                                    style = TextStyle(
+                                                        fontSize = 12.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    modifier = Modifier.padding(vertical = 4.dp),
+                                                    maxLines = 1,
+                                                    textAlign = TextAlign.Center
+                                                )
+
+                                                Text(
+                                                    text = "${article.value} €",
+                                                    style = TextStyle(fontSize = 10.sp),
+                                                    modifier = Modifier.padding(bottom = 4.dp)
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
-                                Text(
-                                    text = article.value.toString() + " €",
-                                    style = TextStyle(fontSize = 10.sp),
-                                    modifier = Modifier.padding(start = 14.dp)
-                                )
                             }
                         }
-                    )
+
+                        // Add spacer between category rows
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
                 }
-            }else {
+
+
+
+        }else {
+                val articlesByCategory = articles.groupBy { it.cat }
+
                 // Display search results if there are any
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 128.dp)
@@ -236,20 +280,24 @@ fun MainScene(viewModel: MainViewModel) {
     }
 }
 @Composable
-fun CustomTopAppBar(viewModel: MainViewModel, searchText: String, onSearchTextChanged: (String) -> Unit) {
+fun CustomTopAppBar(
+    viewModel: MainViewModel,
+    searchText: String,
+    onSearchTextChanged: (String) -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+            .padding(horizontal = 40.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Search Box
+        // Search Box with Spacer
         Box(
             modifier = Modifier
-                .weight(1f)
-                .padding(end = 8.dp)
+                .weight(30F)
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color(0xFFE0E0E0))
+                .clickable { /* Handle click event */ }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -259,21 +307,23 @@ fun CustomTopAppBar(viewModel: MainViewModel, searchText: String, onSearchTextCh
                     contentDescription = "Search",
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(1.dp))
                 BasicTextField(
                     value = searchText,
-                    onValueChange = { onSearchTextChanged(it) }, // Use the callback to update searchText
-                    textStyle = TextStyle(fontSize = 12.sp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp)
+                    onValueChange = { onSearchTextChanged(it) },
+                    textStyle = TextStyle(fontSize = 16.sp),
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
         }
+
+        // Spacing to align the profile icon to the right
+        Spacer(modifier = Modifier.weight(1f))
+
         // Profile Icon
         IconButton(
             onClick = { viewModel.navigateToInventory() },
-            modifier = Modifier.padding(horizontal = 20.dp)
+            modifier = Modifier.padding(horizontal = 1.dp)
         ) {
             Icon(
                 imageVector = Icons.Filled.Person,
@@ -283,6 +333,9 @@ fun CustomTopAppBar(viewModel: MainViewModel, searchText: String, onSearchTextCh
         }
     }
 }
+
+
+
 private fun performSearch(
     articles: List<Article>,
     query: String,
@@ -293,7 +346,6 @@ private fun performSearch(
     }
     onSearchResults(searchResults)
 }
-@OptIn(ExperimentalAnimationApi::class)
 @Preview(showBackground = true)
 @Composable
 fun MainScenePreview() {

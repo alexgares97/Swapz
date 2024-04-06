@@ -62,7 +62,6 @@ import com.eug.swapz.models.Article
 @Composable
 fun InventoryScene(viewModel: InventoryViewModel) {
     val articles by viewModel.articles.observeAsState(emptyList())
-    var searchText by remember { mutableStateOf(String()) }
     val username by viewModel.username.collectAsState()
 
     LaunchedEffect(Unit) {
