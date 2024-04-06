@@ -51,7 +51,7 @@ class LoginViewModel(
         }
     }
 
-    fun signUp(email: String, password: String) {
+    /*fun signUp(email: String, password: String) {
         viewModelScope.launch {
             isLoading.value = true
             val success = sessionDataSource.signUpUser(email, password)
@@ -63,7 +63,7 @@ class LoginViewModel(
                 navigateToMain()
             }
         }
-    }
+    }*/
 
     private fun navigateToMain() {
         viewModelScope.launch {
@@ -77,17 +77,15 @@ class LoginViewModel(
             }
         }
     }
-    /*fun navigateToRegister(){
+
+    fun navigateToRegister() {
         viewModelScope.launch {
             isLoading.value = false
-            if(_loggedIn.value){
-                navController.navigate(AppRoutes.REGISTER.value){
-                    popUpTo(AppRoutes.LOGIN.value){
-                        inclusive = true
-                    }
+            navController.navigate(AppRoutes.REGISTER.value) {
+                popUpTo(AppRoutes.LOGIN.value) {
+                    inclusive = true
                 }
             }
         }
-
-    }*/
+    }
 }

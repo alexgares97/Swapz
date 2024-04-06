@@ -83,6 +83,7 @@ fun AddArticle(viewModel: AddArticleViewModel) {
     var expandedStatus = remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     var imageUrl = remember { mutableStateOf(emptyList<TextFieldValue>()) }
+    //var user = remember { mutableStateOf() }
     val context = LocalContext.current
 
 

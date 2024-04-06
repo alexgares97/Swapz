@@ -60,6 +60,7 @@ class AddArticleViewModel (
     fun addArticle(title: String, desc: String, status: String, cat: String, value: Int?, img: List<String>)
     {
         val articleRef = FirebaseDatabase.getInstance().getReference("articles")
+        val userId = getCurrentUserId()
         // Get a reference to the articles node
         val articlesQuery = articleRef.orderByKey().limitToLast(1)
         articlesQuery.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -76,12 +77,12 @@ class AddArticleViewModel (
                 newArticleRef.child("status").setValue(status)
                 newArticleRef.child("cat").setValue(cat)
                 newArticleRef.child("value").setValue(value)
-
                 // Add each image URL to the "carrusel" node with incremental indices
                 val carruselRef = newArticleRef.child("carrusel")
                 img.forEachIndexed { index, imageUrl ->
                     carruselRef.child(index.toString()).setValue(imageUrl)
                 }
+                newArticleRef.child("user").setValue(userId)
                 Log.d(ContentValues.TAG, "Article added successfully")
             }
 

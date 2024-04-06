@@ -43,7 +43,7 @@ interface ISessionDataSource {
      *
      * @return True if the signup was successful, false otherwise.
      */
-    suspend fun signUpUser(email: String, password: String): Boolean
+    suspend fun signUpUser(email: String, password: String, username: String, name: String): Boolean
 
     /**
      * Signs out the currently authenticated user using Firebase Authentication.

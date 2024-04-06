@@ -67,4 +67,12 @@ class MainViewModel(
             navController.navigate(AppRoutes.ADD_ARTICLE.value)
         }
     }
+
+    fun navigateToInventory() {
+        viewModelScope.launch {
+            Log.d("Navigating to Add Article", "")
+            navController.navigate(AppRoutes.INVENTORY.value)
+        }
+    }
+
 }

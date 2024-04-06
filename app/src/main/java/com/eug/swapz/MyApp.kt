@@ -16,8 +16,10 @@ import com.eug.swapz.datasources.SessionDataSource
 import com.eug.swapz.ui.scenes.addarticle.AddArticleFactory
 import com.eug.swapz.ui.scenes.articleDetail.ArticleDetailFactory
 import com.eug.swapz.ui.scenes.intro.IntroFactory
+import com.eug.swapz.ui.scenes.inventory.InventoryFactory
 import com.eug.swapz.ui.scenes.login.LoginFactory
 import com.eug.swapz.ui.scenes.main.MainSceneFactory
+import com.eug.swapz.ui.scenes.register.RegisterFactory
 import com.eug.swapz.ui.theme.SwapzTheme
 import com.google.firebase.database.FirebaseDatabase
 
@@ -34,9 +36,10 @@ fun MyApp() {
     val loginFactory = LoginFactory(navController, sessionDataSource)
     val mainSceneFactory =
         MainSceneFactory(navController, sessionDataSource, articlesDataSource)
-    //registerSceneFactory = RegisterSceneFactory(navController, sessionDataSource, capsulesDataSource)
+    val registerFactory = RegisterFactory(navController, sessionDataSource)
     val articleDetailFactory = ArticleDetailFactory(navController, articlesDataSource, sessionDataSource)
     val addArticleFactory = AddArticleFactory(navController, sessionDataSource)
+    val inventoryFactory = InventoryFactory(navController, sessionDataSource, articlesDataSource)
 
     val startDestination =
         if (sessionDataSource.isLoggedIn()) AppRoutes.MAIN.value else AppRoutes.INTRO.value
@@ -68,11 +71,11 @@ fun MyApp() {
 
             }
 
-            /*composable(
+            composable(
                 AppRoutes.REGISTER.value
             ) {
-                //registerSceneFactory.create(null)
-            }*/
+                registerFactory.create(null)
+            }
 
             composable(
                 route = AppRoutes.ARTICLE_DETAIL.value + "/{id}",
@@ -87,6 +90,11 @@ fun MyApp() {
                 AppRoutes.ADD_ARTICLE.value
             ){
                 addArticleFactory.create(null)
+            }
+            composable(
+                AppRoutes.INVENTORY.value
+            ){
+                inventoryFactory.create(null)
             }
 
         }

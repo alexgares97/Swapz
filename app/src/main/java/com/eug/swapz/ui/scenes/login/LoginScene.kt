@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.eug.swapz.R
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -115,21 +116,18 @@ fun LoginScene(viewModel: LoginViewModel) {
                         viewModel.login(email, password)
                     }
                 },
-                modifier = Modifier.weight(1f),
+                //modifier = Modifier.weight(1f),
                 enabled = !viewModel.isLoading.value
             ) {
                 Text(text = "Login")
             }
 
             Spacer(modifier = Modifier.width(16.dp))
-
             Button(
                 onClick = {
-                    validateInputs() { email, password ->
-                        viewModel.signUp(email, password)
-                    }
+                    viewModel.navigateToRegister()
                 },
-                modifier = Modifier.weight(1f),
+               //Modifier.weight(1f),
                 enabled = !viewModel.isLoading.value
             ) {
                 Text(text = "Sign up")

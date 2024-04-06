@@ -6,6 +6,7 @@ import android.util.Log
 import com.eug.swapz.datasources.interfaces.ISessionDataSource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 
 import kotlinx.coroutines.tasks.await
 
@@ -65,12 +66,19 @@ class SessionDataSource : ISessionDataSource{
         }
     }
 
-    override suspend fun signUpUser(email: String, password: String): Boolean {
+    override suspend fun signUpUser(email: String, password: String, username: String, name: String): Boolean {
         this.signOutUser()
         return try {
             // Create a new user account with the specified email and password using the
             // Firebase Authentication SDK
             val result = auth.createUserWithEmailAndPassword(email, password).await()
+            // Update the user's profile with the provided username
+            result.user?.let { user ->
+                val profileUpdates = UserProfileChangeRequest.Builder()
+                    .setDisplayName(username)
+                    .build()
+                user.updateProfile(profileUpdates).await()
+            }
             // Return true if the signup was successful (i.e., the user is not null)
             result.user != null
         } catch (e: Exception) {
@@ -78,6 +86,7 @@ class SessionDataSource : ISessionDataSource{
             false
         }
     }
+
 
     override fun signOutUser() {
         // Sign out the currently authenticated user using the Firebase Authentication SDK
