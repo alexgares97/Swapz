@@ -1,4 +1,6 @@
 <ImageView android:id="@+id/imageView1"
     android:layout_width="100dp"
     android:layout_height="100dp"
-    xmlns:android="http://schemas.android.com/apk/res/android" />
+
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/atletismo"/>

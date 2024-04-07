@@ -91,6 +91,31 @@ class ArticlesDataSource(private val database: FirebaseDatabase) : IMainDataSour
             })
         }
     }
+    suspend fun getCategoryArticles(category: String): List<Article> {
+        return suspendCoroutine { continuation ->
+            val ref = database.getReference("articles")
+            ref.orderByChild("cat").equalTo(category).addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val fetchedArticles = mutableListOf<Article>()
+
+                    for (articleSnapshot in snapshot.children) {
+                        val article = articleSnapshot.getValue(Article::class.java)
+                        if (article != null) {
+                            article.id = articleSnapshot.key
+                            fetchedArticles.add(article)
+                        }
+                    }
+
+                    continuation.resume(fetchedArticles)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    continuation.resumeWithException(error.toException())
+                }
+            })
+        }
+    }
+
 
     override fun get(id: String): Article? {
         return articles.find { it.id == id }

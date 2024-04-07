@@ -55,6 +55,7 @@ class MainViewModel(
         }
     }
 
+
     fun navigateToDetail(article: Article){
         viewModelScope.launch {
             Log.d("Navigating to category", ""+article.id)
@@ -73,6 +74,12 @@ class MainViewModel(
             Log.d("Navigating to Add Article", "")
             navController.navigate(AppRoutes.INVENTORY.value)
         }
+    }
+    fun navigateToFilter(category: String){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.FILTER.value+"/"+category)
+        }
+
     }
 
 }

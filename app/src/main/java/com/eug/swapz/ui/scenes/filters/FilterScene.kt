@@ -1,6 +1,8 @@
-package com.eug.swapz.ui.scenes.main
+package com.eug.swapz.ui.scenes.filters
+
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,12 +17,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -44,28 +43,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.eug.swapz.R
 import com.eug.swapz.datasources.SessionDataSource
 import com.eug.swapz.ui.scenes.login.LoginFactory
 import com.eug.swapz.ui.theme.SwapzTheme
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.eug.swapz.models.Article
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import com.eug.swapz.ui.scenes.filters.FilterViewModel
 
-
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScene(viewModel: MainViewModel) {
+fun FilterScene(viewModel: FilterViewModel) {
     val articles by viewModel.articles.observeAsState(emptyList())
-    var filteredArticles by remember { mutableStateOf(emptyList<Article>()) }
     var searchText by remember { mutableStateOf(String()) }
-    val articlesByCategory = articles.groupBy { it.cat }
+    var filteredArticles by remember { mutableStateOf(emptyList<Article>()) }
+
     viewModel.fetch()
+
     DisposableEffect(searchText) {
         val onSearchResults: (List<Article>) -> Unit = { searchResults ->
             filteredArticles = searchResults
@@ -87,134 +81,58 @@ fun MainScene(viewModel: MainViewModel) {
         {
             if (filteredArticles.isEmpty()) {
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .padding(top = 55.dp)
-                        .padding(horizontal = 50.dp),
-                    horizontalArrangement = Arrangement.spacedBy(40.dp),
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 128.dp)
                 ) {
-                    articlesByCategory.keys.forEach { category ->
-                        val iconResourceId = getIconResourceIdForCategory(category ?: "")
-                        Box(
-                            modifier = Modifier
-                                .clickable {
-                                    viewModel.navigateToFilter(
-                                        category ?: ""
-                                    )
-                                } // Navigate on click
-                                .wrapContentWidth()
-                                .padding(horizontal = 4.dp), // Add some padding to each box
-                            contentAlignment = Alignment.Center
-                        ) {
+                    items(
+                        items = articles,
+                        itemContent = { article ->
                             Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { viewModel.navigateToDetail(article) }
                             ) {
                                 Image(
-                                    painter = painterResource(id = iconResourceId),
+                                    painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
                                     contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier
+                                        .size(200.dp)
+                                        .padding(top = 70.dp, start = 12.dp, end = 12.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
+                                    contentScale = ContentScale.Crop,
                                 )
-                                Spacer(modifier = Modifier.height(4.dp)) // Add padding between image and text
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    val max_title_length =
+                                        19 // Define your maximum text length threshold
+                                    Text(
+                                        text = if (article.title.length <= max_title_length) {
+                                            article.title
+                                        } else {
+                                            "${article.title.take(max_title_length)}..."
+                                        },
+                                        style = TextStyle(
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold
+                                        ),
+                                        modifier = Modifier.padding(start = 13.dp, end = 10.dp),
+                                        maxLines = 1
+                                    )
+                                }
                                 Text(
-                                    text = category
-                                        ?: "Unknown", // Display "Unknown" if category is null
-                                    style = TextStyle(fontSize = 12.sp),
-                                    textAlign = TextAlign.Center
+                                    text = article.value.toString() + " €",
+                                    style = TextStyle(fontSize = 10.sp),
+                                    modifier = Modifier.padding(start = 14.dp)
                                 )
                             }
                         }
-                    }
-                }
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 130.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-
-                    articlesByCategory.forEach { (category, categoryArticles) ->
-                        item {
-                            Text(
-                                text = category ?: "Other",
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Black
-                                ),
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
-                        }
-
-                        item {
-                            LazyRow(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                content = {
-                                    items(categoryArticles) { article ->
-                                        Box(
-                                            Modifier
-                                                .width(150.dp)
-                                                .padding(end = 8.dp)
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .clickable { viewModel.navigateToDetail(article) }
-                                        ) {
-                                            Column(
-                                                Modifier.fillMaxWidth(),
-                                                horizontalAlignment = Alignment.CenterHorizontally
-                                            ) {
-                                                Image(
-                                                    painter = rememberAsyncImagePainter(
-                                                        article.carrusel?.get(0)
-                                                    ),
-                                                    contentDescription = null,
-                                                    modifier = Modifier
-                                                        .size(110.dp)
-                                                        .clip(RoundedCornerShape(8.dp)),
-                                                    contentScale = ContentScale.Crop,
-                                                )
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    val max_title_length = 19
-                                                    Text(
-                                                        text = if (article.title.length <= max_title_length) {
-                                                            article.title
-                                                        } else {
-                                                            "${article.title.take(max_title_length)}..."
-                                                        },
-                                                        style = TextStyle(
-                                                            fontSize = 12.sp,
-                                                            fontWeight = FontWeight.Bold
-                                                        ),
-                                                        modifier = Modifier.padding(
-                                                            start = 13.dp,
-                                                            end = 10.dp
-                                                        ),
-                                                        maxLines = 1
-                                                    )
-                                                }
-                                                Text(
-                                                    text = article.value.toString() + " €",
-                                                    style = TextStyle(fontSize = 10.sp),
-                                                    modifier = Modifier.padding(start = 14.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    }
+                    )
                 }
             }
             else {
-                val articlesByCategory = articles.groupBy { it.cat }
-
-                // Display search results if there are any
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 128.dp)
                 ) {
@@ -306,19 +224,9 @@ private fun performSearch(
     onSearchResults(searchResults)
 }
 
-fun getIconResourceIdForCategory(categoryName: String): Int {
-    return when (categoryName) {
-        "Hogar" -> R.drawable.hogar
-        "Deportes" -> R.drawable.atletismo
-        "Moda" -> R.drawable.camisa
-        "Otros" -> R.drawable.otros
-        else -> R.drawable.otros // Provide a default icon if category doesn't match
-    }
-}
-
 @Composable
 fun CustomTopAppBar(
-    viewModel: MainViewModel,
+    viewModel: FilterViewModel,
     searchText: String,
     onSearchTextChanged: (String) -> Unit
 ) {

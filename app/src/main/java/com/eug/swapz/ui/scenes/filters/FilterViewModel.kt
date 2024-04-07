@@ -1,4 +1,5 @@
-package com.eug.swapz.ui.scenes.inventory
+package com.eug.swapz.ui.scenes.filters
+
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -11,11 +12,9 @@ import com.eug.swapz.datasources.ArticlesDataSource
 import com.eug.swapz.datasources.SessionDataSource
 import com.eug.swapz.models.Article
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class InventoryViewModel(
+class FilterViewModel(
     private val navController: NavController,
     private val sessionDataSource: SessionDataSource,
     private val articlesDataSource: ArticlesDataSource
@@ -23,37 +22,22 @@ class InventoryViewModel(
     private val _articles = MutableLiveData<List<Article>>()
     val articles: LiveData<List<Article>> = _articles
     private val auth = FirebaseAuth.getInstance()
-    private val _username = MutableStateFlow<String?>(null)
-    val username: StateFlow<String?> = _username
-    private val _category = MutableStateFlow<String?>(null)
-    val category: StateFlow<String?> = _category
 
-
-    init {
-        // Call retrieveUsername() when the ViewModel is initialized
-        retrieveUsername()
-    }
-    private fun getCurrentUserId(): String? {
-        return sessionDataSource.getCurrentUserId()
-
-    }
     fun fetch() {
+        val category = getCategoryFromRoute()
         viewModelScope.launch {
-            val userId = getCurrentUserId()
-            if (!userId.isNullOrEmpty()) {
-                val articleList = articlesDataSource.getUserArticles(userId)
+            try {
+                val articleList = articlesDataSource.getCategoryArticles(category)
                 _articles.value = articleList
-                // No need to call subscribe here, as fetching user articles already does the job
-            } else {
-                Log.e("InventoryViewModel", "User ID is null or empty")
+            } catch (e: Exception) {
+                Log.e("FilterViewModel", "Error fetching articles for category: $category", e)
             }
         }
     }
-    private fun retrieveUsername() {
-        viewModelScope.launch {
-            val currentUser = auth.currentUser
-            _username.value = currentUser?.displayName
-        }
+    private fun getCategoryFromRoute(): String {
+        val navBackStackEntry = navController.currentBackStackEntry ?: return ""
+        val arguments = navBackStackEntry.arguments
+        return arguments?.getString("category") ?: ""
     }
 
     fun subscribe(){
@@ -91,14 +75,13 @@ class InventoryViewModel(
             navController.navigate(AppRoutes.ADD_ARTICLE.value)
         }
     }
-    fun navigateToMain() {
-        viewModelScope.launch {
-            navController.navigate(AppRoutes.MAIN.value) {
-                popUpTo(AppRoutes.LOGIN.value) {
-                    inclusive = true
-                }
-            }
-        }
 
+    fun navigateToInventory() {
+        viewModelScope.launch {
+            Log.d("Navigating to Add Article", "")
+            navController.navigate(AppRoutes.INVENTORY.value)
+        }
     }
+
+
 }

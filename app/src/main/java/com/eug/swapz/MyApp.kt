@@ -20,6 +20,7 @@ import com.eug.swapz.ui.scenes.inventory.InventoryFactory
 import com.eug.swapz.ui.scenes.login.LoginFactory
 import com.eug.swapz.ui.scenes.main.MainSceneFactory
 import com.eug.swapz.ui.scenes.register.RegisterFactory
+import com.eug.swapz.ui.scenes.filters.FilterFactory
 import com.eug.swapz.ui.theme.SwapzTheme
 import com.google.firebase.database.FirebaseDatabase
 
@@ -40,7 +41,7 @@ fun MyApp() {
     val articleDetailFactory = ArticleDetailFactory(navController, articlesDataSource, sessionDataSource)
     val addArticleFactory = AddArticleFactory(navController, sessionDataSource)
     val inventoryFactory = InventoryFactory(navController, sessionDataSource, articlesDataSource)
-
+    val filterFactory = FilterFactory(navController,sessionDataSource,articlesDataSource)
     val startDestination =
         if (sessionDataSource.isLoggedIn()) AppRoutes.MAIN.value else AppRoutes.INTRO.value
 
@@ -95,6 +96,17 @@ fun MyApp() {
                 AppRoutes.INVENTORY.value
             ){
                 inventoryFactory.create(null)
+            }
+
+            composable(
+                route = "${AppRoutes.FILTER.value}/{category}", // Include the category parameter
+                arguments = listOf(navArgument("category") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val category = backStackEntry.arguments?.getString("category")
+                // Ensure category is not null before proceeding
+                category?.let { categoryId ->
+                    filterFactory.create(categoryId)
+                }
             }
 
         }

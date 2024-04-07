@@ -63,6 +63,7 @@ import com.eug.swapz.models.Article
 fun InventoryScene(viewModel: InventoryViewModel) {
     val articles by viewModel.articles.observeAsState(emptyList())
     val username by viewModel.username.collectAsState()
+    val category by viewModel.category.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetch()
@@ -72,7 +73,7 @@ fun InventoryScene(viewModel: InventoryViewModel) {
             TopAppBar(
                 title = {Text(text = username ?: "Inventory")},// Use the retrieved username as the title }, // Accessing viewModel.username correctly
                 actions = {
-                    IconButton(onClick = { viewModel.home() }) {
+                    IconButton(onClick = { viewModel.navigateToMain() }) {
                         Box(
                             Modifier
                                 .size(37.dp)
