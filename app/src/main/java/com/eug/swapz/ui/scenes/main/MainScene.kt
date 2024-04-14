@@ -52,6 +52,8 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.eug.swapz.models.Article
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import com.eug.swapz.ui.scenes.filters.FilterViewModel
@@ -286,6 +288,21 @@ fun MainScene(viewModel: MainViewModel) {
                         Icons.Filled.AddBox,
                         contentDescription = null,
                         // tint = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(50.dp)// Center icon within Box
+                    )
+                }
+                Box(
+                    Modifier
+                        .size(30.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.Yellow)
+                        .clickable { viewModel.navigateToChatList()}
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Chat,
+                        contentDescription = null,
                         modifier = Modifier
                             .align(Alignment.Center)
                             .size(50.dp)// Center icon within Box

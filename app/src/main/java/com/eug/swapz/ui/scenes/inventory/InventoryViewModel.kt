@@ -99,6 +99,21 @@ class InventoryViewModel(
                 }
             }
         }
-
+    }
+    fun deleteArticle(article: String?) {
+        viewModelScope.launch {
+            try {
+                // Perform deletion action using ArticlesDataSource
+                if (article != null) {
+                    articlesDataSource.deleteArticle(article)
+                }
+                fetch()
+            } catch (e: Exception) {
+                // Handle deletion failure
+                // You can show a toast message or log the error
+                // For simplicity, we'll just log the error here
+                e.printStackTrace()
+            }
+        }
     }
 }

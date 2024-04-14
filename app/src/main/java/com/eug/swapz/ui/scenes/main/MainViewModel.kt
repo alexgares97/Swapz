@@ -81,5 +81,10 @@ class MainViewModel(
         }
 
     }
+    fun navigateToChatList(){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.CHAT_LIST.value)
+        }
+    }
 
 }

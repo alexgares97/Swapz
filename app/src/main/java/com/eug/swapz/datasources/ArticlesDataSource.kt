@@ -10,7 +10,7 @@ import com.google.firebase.database.ValueEventListener
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
-import kotlinx.coroutines.tasks.await
+
 class ArticlesDataSource(private val database: FirebaseDatabase) : IMainDataSource {
     private var articles: List<Article> = mutableListOf()
 
@@ -115,6 +115,22 @@ class ArticlesDataSource(private val database: FirebaseDatabase) : IMainDataSour
             })
         }
     }
+    suspend fun deleteArticle(articleId: String) {
+        return suspendCoroutine { continuation ->
+            val ref = database.getReference("articles").child(articleId)
+            ref.removeValue()
+                .addOnSuccessListener {
+                    // Deletion successful
+                    continuation.resume(Unit)
+                }
+                .addOnFailureListener { exception ->
+                    // Deletion failed
+                    continuation.resumeWithException(exception)
+                }
+        }
+    }
+
+
 
 
     override fun get(id: String): Article? {

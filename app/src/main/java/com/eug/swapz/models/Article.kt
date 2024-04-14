@@ -9,7 +9,8 @@ data class Article(
     var value: Int = 0,
     var id: String? = "",
     val carrusel: List<String>?,
-    var img: String? = ""
+    var img: String? = "",
+    var userId: String = ""
 
     //var imageUrl: String = "",
     //var locations: HashMap<String, Location> = hashMapOf(),
@@ -18,5 +19,5 @@ data class Article(
 
 ) {
 
-    constructor() : this("", "", "", "",0,"", listOf(), "")
+    constructor() : this("", "", "", "",0,"", listOf(), "", "")
 }

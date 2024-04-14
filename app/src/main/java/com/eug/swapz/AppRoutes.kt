@@ -8,5 +8,7 @@ enum class AppRoutes(val value: String) {
     ARTICLE_DETAIL("ArticleDetail"),
     ADD_ARTICLE("AddArticle"),
     INVENTORY("Inventory"),
-    FILTER("Filter")
+    FILTER("Filter"),
+    CHAT("Chat"),
+    CHAT_LIST("ChatList")
 }

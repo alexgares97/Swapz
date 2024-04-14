@@ -64,7 +64,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     actions = {
 
                             Button(
-                                onClick = { /* Handle button click */ },
+                                onClick = { viewModel.startChat(article.userId) },
                                 modifier = Modifier.padding(horizontal = 55.dp)
                                     .align(Alignment.CenterVertically),
                                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
@@ -135,7 +135,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                         modifier = Modifier.padding(bottom = 8.dp, top = 10.dp)
                     )
                     Text(
-                        text = article.desc,
+                        text = "Descripción: ${article.desc}",
                         style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Justify),
                         modifier = Modifier
                             .padding(vertical = 8.dp)

@@ -45,7 +45,42 @@ class ArticleDetailViewModel (
             navController.navigate(AppRoutes.ADD_ARTICLE.value)
         }
     }
-
+    fun navigateToChatList(){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.CHAT_LIST.value)
+        }
+    }
+    fun navigateToChat(){
+        viewModelScope.launch{
+            navController.navigate(AppRoutes.CHAT.value)
+        }
+    }
+    private fun getCurrentUserId(): String? {
+        return sessionDataSource.getCurrentUserId()
+    }
+    fun startChat(userId: String) {
+        // Get the current user's ID
+        val currentUserUid = getCurrentUserId() ?: return // Return early if current user ID is null
+        // Construct the predefined message
+        val message = "¡Hola! Me interesaría intercambiar este artículo:\n" +
+                "${article?.title}, ${article?.carrusel?.get(0)}"
+        // Construct the chat reference
+        val chatRef = FirebaseDatabase.getInstance().getReference("chats")
+        val currentUserChatRef = chatRef.child(currentUserUid).child(userId)
+        // Push the message to the chat reference
+        val messageId = currentUserChatRef.push().key
+        if (messageId != null) {
+            currentUserChatRef.child(messageId).setValue(message)
+                .addOnSuccessListener {
+                    navigateToChat()
+                    Log.d(TAG, "Message sent successfully")
+                    // Optionally, navigate to the chat screen or perform any other action
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Error sending message", e)
+                }
+        }
+    }
 
 
 }

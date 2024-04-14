@@ -15,6 +15,8 @@ import com.eug.swapz.datasources.ArticlesDataSource
 import com.eug.swapz.datasources.SessionDataSource
 import com.eug.swapz.ui.scenes.addarticle.AddArticleFactory
 import com.eug.swapz.ui.scenes.articleDetail.ArticleDetailFactory
+import com.eug.swapz.ui.scenes.chat.ChatFactory
+import com.eug.swapz.ui.scenes.chatList.ChatListFactory
 import com.eug.swapz.ui.scenes.intro.IntroFactory
 import com.eug.swapz.ui.scenes.inventory.InventoryFactory
 import com.eug.swapz.ui.scenes.login.LoginFactory
@@ -42,8 +44,9 @@ fun MyApp() {
     val addArticleFactory = AddArticleFactory(navController, sessionDataSource)
     val inventoryFactory = InventoryFactory(navController, sessionDataSource, articlesDataSource)
     val filterFactory = FilterFactory(navController,sessionDataSource,articlesDataSource)
-    val startDestination =
-        if (sessionDataSource.isLoggedIn()) AppRoutes.MAIN.value else AppRoutes.INTRO.value
+    val startDestination = if (sessionDataSource.isLoggedIn()) AppRoutes.MAIN.value else AppRoutes.INTRO.value
+    val chatFactory = ChatFactory(navController, sessionDataSource)
+    val chatListFactory = ChatListFactory(navController,sessionDataSource)
 
     SwapzTheme {
         NavHost(
@@ -107,6 +110,16 @@ fun MyApp() {
                 category?.let { categoryId ->
                     filterFactory.create(categoryId)
                 }
+            }
+            composable(
+                AppRoutes.CHAT.value
+            ){
+                chatFactory.create(null)
+            }
+            composable(
+                AppRoutes.CHAT_LIST.value
+            ){
+                chatListFactory.create(null)
             }
 
         }
