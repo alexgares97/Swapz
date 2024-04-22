@@ -10,7 +10,7 @@ class ChatService {
         Firebase.database.reference.child("chats")
     }
 
-    fun sendMessage(message: String) {
+    fun sendMessage(message: String, message1: String) {
         // Implement logic to send message to Firebase Realtime Database
         val messageId = database.push().key
         if (messageId != null) {

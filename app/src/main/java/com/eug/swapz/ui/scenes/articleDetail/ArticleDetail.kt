@@ -64,7 +64,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     actions = {
 
                             Button(
-                                onClick = { viewModel.startChat(article.userId) },
+                                onClick = { viewModel.startExchange(article) },
                                 modifier = Modifier.padding(horizontal = 55.dp)
                                     .align(Alignment.CenterVertically),
                                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),

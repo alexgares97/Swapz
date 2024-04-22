@@ -44,9 +44,10 @@ fun MyApp() {
     val addArticleFactory = AddArticleFactory(navController, sessionDataSource)
     val inventoryFactory = InventoryFactory(navController, sessionDataSource, articlesDataSource)
     val filterFactory = FilterFactory(navController,sessionDataSource,articlesDataSource)
-    val startDestination = if (sessionDataSource.isLoggedIn()) AppRoutes.MAIN.value else AppRoutes.INTRO.value
-    val chatFactory = ChatFactory(navController, sessionDataSource)
+    val chatFactory = ChatFactory(navController, sessionDataSource, articlesDataSource)
     val chatListFactory = ChatListFactory(navController,sessionDataSource)
+    val startDestination = if (sessionDataSource.isLoggedIn()) AppRoutes.MAIN.value else AppRoutes.INTRO.value
+
 
     SwapzTheme {
         NavHost(
@@ -111,11 +112,31 @@ fun MyApp() {
                     filterFactory.create(categoryId)
                 }
             }
+            /*composable(
+                route = "${AppRoutes.CHAT.value}/{userId}",
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId")
+                // Ensure userId is not null before proceeding
+                userId?.let { otherUserId ->
+                    chatFactory.create(otherUserId)
+                }
+            }*/
             composable(
-                AppRoutes.CHAT.value
-            ){
-                chatFactory.create(null)
+                route = "${AppRoutes.CHAT.value}/{userId}/{articleId}",
+                arguments = listOf(
+                    navArgument("userId") { type = NavType.StringType },
+                    navArgument("articleId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId")
+                val articleId = backStackEntry.arguments?.getString("articleId")
+                // Ensure userId and articleId are not null before proceeding
+                if (userId != null && articleId != null) {
+                    chatFactory.createWithArticleId(userId, articleId)
+                }
             }
+
             composable(
                 AppRoutes.CHAT_LIST.value
             ){

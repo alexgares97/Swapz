@@ -10,5 +10,6 @@ enum class AppRoutes(val value: String) {
     INVENTORY("Inventory"),
     FILTER("Filter"),
     CHAT("Chat"),
+    CHAT_EXCHANGE("ChatExchange"),
     CHAT_LIST("ChatList")
 }

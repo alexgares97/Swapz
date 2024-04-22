@@ -129,6 +129,22 @@ class ArticlesDataSource(private val database: FirebaseDatabase) : IMainDataSour
                 }
         }
     }
+    suspend fun getUserIdFromCurrentArticle(articleId: String): String? {
+        return suspendCoroutine { continuation ->
+            val ref = database.getReference("articles").child(articleId)
+            ref.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val article = snapshot.getValue(Article::class.java)
+                    val userId = article?.userId
+                    continuation.resume(userId)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    continuation.resume(null)
+                }
+            })
+        }
+    }
 
 
 

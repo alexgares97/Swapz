@@ -8,23 +8,35 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.eug.swapz.models.ChatMessage
 import com.eug.swapz.ui.scenes.chat.ChatViewModel
 
 // Data class representing a chat message
-data class ChatMessage(val sender: String, val text: String)
+data class ChatMessage(val sender: String, val text: String, val isSentByUser: Boolean)
 
 @Composable
 fun ChatScene(viewModel: ChatViewModel) {
-    var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) } // Initialize with an empty list
     var messageInput by remember { mutableStateOf("") }
+    val chatMessages by viewModel.messages.observeAsState(emptyList())
+    val message by viewModel.message.observeAsState("")
+    val currentChatId by viewModel.currentChatId.observeAsState("")
+    DisposableEffect(Unit) {
+        viewModel.listenForChatMessages(viewModel.currentChatId.value ?: "")
+        onDispose {
+            // Cleanup code if needed
+        }
+    }
 
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -32,7 +44,7 @@ fun ChatScene(viewModel: ChatViewModel) {
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
-            items(messages) { message ->
+            items(chatMessages) { message ->
                 ChatMessageItem(message)
             }
         }
@@ -47,18 +59,29 @@ fun ChatScene(viewModel: ChatViewModel) {
             TextField(
                 value = messageInput,
                 onValueChange = { messageInput = it },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
-
             Button(
-                onClick = { viewModel.sendMessage(messageInput) },
+                onClick = {
+                    viewModel.sendMessage(currentChatId,messageInput)
+                    messageInput = "" // Clear input field after sending message
+                },
                 modifier = Modifier.wrapContentWidth()
             ) {
                 Text("Send")
             }
         }
+
+        // Display the message sent
+        Text(
+            text = message,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.body1
+        )
     }
 }
 
@@ -68,14 +91,21 @@ fun ChatMessageItem(message: ChatMessage) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = if (message.isSentByUser) Arrangement.End else Arrangement.Start
     ) {
         Box(
             modifier = Modifier
-                .background(Color.LightGray, RoundedCornerShape(8.dp))
+                .background(
+                    if (message.isSentByUser) Color.LightGray else MaterialTheme.colors.primary,
+                    RoundedCornerShape(8.dp)
+                )
                 .padding(8.dp)
         ) {
-            Text(text = message.text)
+            Text(
+                text = message.text,
+                color = if (message.isSentByUser) Color.Black else Color.White,
+                textAlign = if (message.isSentByUser) TextAlign.End else TextAlign.Start
+            )
         }
     }
 }

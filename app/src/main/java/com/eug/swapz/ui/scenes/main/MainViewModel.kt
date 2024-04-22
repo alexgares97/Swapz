@@ -58,7 +58,7 @@ class MainViewModel(
 
     fun navigateToDetail(article: Article){
         viewModelScope.launch {
-            Log.d("Navigating to category", ""+article.id)
+            Log.d("Navigating to Article Detail", ""+article.id)
             navController.navigate(AppRoutes.ARTICLE_DETAIL.value+"/"+article.id)
         }
     }
