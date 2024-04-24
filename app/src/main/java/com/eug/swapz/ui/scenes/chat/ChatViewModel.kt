@@ -36,7 +36,7 @@ class ChatViewModel(
     val currentChatId: LiveData<String> = _currentChatId
     private val _message = MutableLiveData<String>()
     val message: LiveData<String> = _message
-
+    private val sentMessage = MutableLiveData<String>()
 
 
     fun listenForChatMessages(chatId: String) {

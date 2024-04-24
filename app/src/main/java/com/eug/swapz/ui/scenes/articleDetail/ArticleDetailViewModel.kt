@@ -86,7 +86,7 @@ class ArticleDetailViewModel(
 
         val chatsRef = FirebaseDatabase.getInstance().getReference("chats")
         val chatId = if (currentUserUid < otherUserId) {
-            "$currentUserUid-$otherUserId"
+            "$currentUserUid-$otherUserId"  
         } else {
             "$otherUserId-$currentUserUid"
         }
@@ -137,7 +137,6 @@ class ArticleDetailViewModel(
                         }
                 }
             }
-
             override fun onCancelled(error: DatabaseError) {
                 Log.e("ArticleDetailViewModel", "Database error", error.toException())
             }
