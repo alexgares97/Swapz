@@ -135,7 +135,7 @@ class ArticlesDataSource(private val database: FirebaseDatabase) : IMainDataSour
             ref.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val article = snapshot.getValue(Article::class.java)
-                    val userId = article?.userId
+                    val userId = article?.user
                     continuation.resume(userId)
                 }
 
@@ -151,5 +151,25 @@ class ArticlesDataSource(private val database: FirebaseDatabase) : IMainDataSour
 
     override fun get(id: String): Article? {
         return articles.find { it.id == id }
+    }
+    suspend fun getArticleById(articleId: String): Article? {
+        return suspendCoroutine { continuation ->
+            val ref = database.getReference("articles").child(articleId)
+            ref.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val article = snapshot.getValue(Article::class.java)
+                    if (article != null) {
+                        article.id = snapshot.key
+                        continuation.resume(article)
+                    } else {
+                        continuation.resume(null)
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    continuation.resumeWithException(error.toException())
+                }
+            })
+        }
     }
 }

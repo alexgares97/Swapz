@@ -7,17 +7,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.eug.swapz.AppRoutes
-import com.eug.swapz.datasources.ArticlesDataSource
 import com.eug.swapz.datasources.SessionDataSource
 import com.eug.swapz.models.Article
-import com.eug.swapz.ui.scenes.chat.ChatViewModel
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
 
 
 class ArticleDetailViewModel(
@@ -57,10 +54,10 @@ class ArticleDetailViewModel(
         }
     }
 
-   private fun navigateToExchange(article: Article, chatId: String) {
+    private fun navigateToExchange(userId: String,article: Article, chatId: String ) {
         viewModelScope.launch {
-            Log.d(TAG, "Navigating to exchange with chat node: $chatId")
-            navController.navigate("${AppRoutes.CHAT.value}/$chatId/${article.id}")
+            Log.d(TAG, "Navigating to exchange with user id: $userId")
+            navController.navigate("${AppRoutes.CHAT.value}/$userId/${article.id}/$chatId")
         }
     }
     private fun navigateToLogin() {
@@ -70,66 +67,66 @@ class ArticleDetailViewModel(
             }
         }
     }
-    fun startExchange(article: Article) {
+    fun startExchange(userId: String,article: Article) {
         val currentUserUid = getCurrentUserId() ?: run {
             Log.e("ArticleDetailViewModel", "Current user ID is null")
             return
         }
 
-        val otherUserId = article.userId ?: run {
-            Log.e("ArticleDetailViewModel", "Other user ID is null")
-            return
-        }
-
-        val message = "¡Hola! Me interesaría intercambiar este artículo:\n" +
-                "${article.title}, ${article.carrusel?.get(0)}"
+        val message = "¡Hola! Me interesaría intercambiar este artículo:"
 
         val chatsRef = FirebaseDatabase.getInstance().getReference("chats")
-        val chatId = if (currentUserUid < otherUserId) {
-            "$currentUserUid-$otherUserId"  
+        val chatId = if (currentUserUid < userId) {
+            "$currentUserUid-$userId"
         } else {
-            "$otherUserId-$currentUserUid"
+            "$userId-$currentUserUid"
         }
 
         val chatRef = chatsRef.child(chatId)
 
-        // Check if the chat node already exists
         chatRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
-                    // Chat node already exists, add the text directly
+                    // Chat node exists, add new message as subnode
                     val messageId = chatRef.push().key ?: run {
                         Log.e("ArticleDetailViewModel", "Message ID is null")
                         return
                     }
+                    val timestamp = ServerValue.TIMESTAMP
                     val messageData = mapOf(
-                        "text" to message
+                        "senderId" to currentUserUid,
+                        "text" to message,
+                        "timestamp" to timestamp
                     )
                     chatRef.child(messageId).setValue(messageData)
                         .addOnSuccessListener {
                             // Notify UI of sent message
                             sentMessage.postValue(message)
-                            // Get the chat node
                             // Navigate to exchange fragment with chat node
-                            navigateToExchange(article, chatId)
+                            navigateToExchange(userId, article, chatId)
                             Log.d("ArticleDetailViewModel", "Message sent successfully")
                         }
                         .addOnFailureListener { e ->
                             Log.e("ArticleDetailViewModel", "Error sending message", e)
                         }
                 } else {
-                    // Chat node doesn't exist, create the chat node
+                    // Chat node doesn't exist, create new chat node
+                    val messageId = chatRef.push().key ?: run {
+                        Log.e("ArticleDetailViewModel", "Message ID is null")
+                        return
+                    }
+                    val timestamp = ServerValue.TIMESTAMP
                     val messageData = mapOf(
                         "senderId" to currentUserUid,
-                        "text" to message
+                        "text" to message,
+                        "timestamp" to timestamp
                     )
-                    chatRef.setValue(messageData)
+                    chatRef.child(messageId).setValue(messageData)
                         .addOnSuccessListener {
                             // Notify UI of sent message
                             sentMessage.postValue(message)
-                            // Get the chat node
                             // Navigate to exchange fragment with chat node
-                            navigateToExchange(article, chatId)
+                            navigateToExchange(userId, article, chatId)
                             Log.d("ArticleDetailViewModel", "Message sent successfully")
                         }
                         .addOnFailureListener { e ->
@@ -137,11 +134,14 @@ class ArticleDetailViewModel(
                         }
                 }
             }
+
             override fun onCancelled(error: DatabaseError) {
                 Log.e("ArticleDetailViewModel", "Database error", error.toException())
             }
         })
     }
+
+
 
 
 

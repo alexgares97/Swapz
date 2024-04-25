@@ -10,7 +10,7 @@ data class Article(
     var id: String? = "",
     val carrusel: List<String>?,
     var img: String? = "",
-    var userId: String = ""
+    var user: String = ""
 
     //var imageUrl: String = "",
     //var locations: HashMap<String, Location> = hashMapOf(),

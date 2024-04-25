@@ -54,6 +54,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
     var onClickImg by remember { mutableStateOf(false) }
     val images = article.carrusel ?: emptyList()
     val pagerState = rememberPagerState(pageCount = { images.size })
+    var userId = article.user
 
     // Conditionally show the top bar only if image is not clicked
     if (!onClickImg) {
@@ -64,7 +65,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     actions = {
 
                             Button(
-                                onClick = { viewModel.startExchange(article) },
+                                onClick = { viewModel.startExchange(userId,article) },
                                 modifier = Modifier.padding(horizontal = 55.dp)
                                     .align(Alignment.CenterVertically),
                                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),

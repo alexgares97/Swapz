@@ -123,20 +123,23 @@ fun MyApp() {
                 }
             }*/
             composable(
-                route = "${AppRoutes.CHAT.value}/{userId}/{articleId}",
+                route = "${AppRoutes.CHAT.value}/{userId}/{articleId}/{chatId}",
                 arguments = listOf(
                     navArgument("userId") { type = NavType.StringType },
-                    navArgument("articleId") { type = NavType.StringType }
+                    navArgument("articleId") { type = NavType.StringType },
+                    navArgument("chatId"){ type = NavType.StringType}
                 )
             ) { backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId")
                 val articleId = backStackEntry.arguments?.getString("articleId")
+                val chatId = backStackEntry.arguments?.getString("chatId")
+
+
                 // Ensure userId and articleId are not null before proceeding
-                if (userId != null && articleId != null) {
-                    chatFactory.createWithArticleId(userId, articleId)
+                if (userId != null && articleId != null && chatId != null) {
+                    chatFactory.createWithArticleId(userId, articleId, chatId)
                 }
             }
-
             composable(
                 AppRoutes.CHAT_LIST.value
             ){
