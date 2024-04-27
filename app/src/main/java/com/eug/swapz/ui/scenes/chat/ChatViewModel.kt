@@ -97,6 +97,15 @@ class ChatViewModel(
                         Log.d("ChatViewModel", "Message sent successfully")
                         // Log the original chatId for reference
                         Log.d("ChatViewModel", "Original chatId: $node")
+
+                        // **Update the messages LiveData with the new message**
+                        val updatedMessages = messages.value?.toMutableList() ?: mutableListOf()
+                        updatedMessages.add(ChatMessage(
+                            senderId = currentUserUid,
+                            text = message ?: "",
+                            isSentByUser = true
+                        ))
+                        _messages.postValue(updatedMessages)
                     }
                     .addOnFailureListener { e ->
                         // Error sending message
@@ -108,6 +117,8 @@ class ChatViewModel(
             }
         }
     }
+
+
 
 
 

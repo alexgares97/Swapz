@@ -41,9 +41,7 @@ fun ChatScene(viewModel: ChatViewModel) {
     val article by viewModel.article.observeAsState()
     val imageUrl = article?.carrusel?.get(0)
     val title = article?.title
-
     // Extract the image URL from the article if available
-
     DisposableEffect(Unit) {
         viewModel.listenForChatMessages(viewModel.currentChatId.value ?: "")
         onDispose {
@@ -51,55 +49,53 @@ fun ChatScene(viewModel: ChatViewModel) {
         }
     }
 
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Chat messages
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            reverseLayout = true // Reverse layout to start from the bottom
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Chat messages
-            LazyColumn(
-                modifier = Modifier.weight(1f)
-            ) {
-                items(chatMessages) { message ->
-                    ChatMessageItem(message, imageUrl, title)
-                }
+        ) {
+            items(chatMessages) { message ->
+                ChatMessageItem(message, imageUrl, title)
             }
-            Spacer(modifier = Modifier.weight(1f))
-
-
-            // Message input field and send button
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            ) {
-                TextField(
-                    value = messageInput,
-                    onValueChange = { messageInput = it },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)
-                )
-
-                Button(
-                    onClick = {
-                        viewModel.sendMessage(messageInput)
-                        messageInput = "" // Clear input field after sending message
-                    },
-                    modifier = Modifier.wrapContentWidth()
-                ) {
-                    Text("Send")
-                }
-            }
-
-            // Display the message sent
-            Text(
-                text = message,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.body1
-            )
         }
-    }
 
+        // Message input field and send button
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            TextField(
+                value = messageInput,
+                onValueChange = { messageInput = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            )
+
+            Button(
+                onClick = {
+                    viewModel.sendMessage(messageInput)
+                    messageInput = "" // Clear input field after sending message
+                },
+                modifier = Modifier.wrapContentWidth()
+            ) {
+                Text("Send")
+            }
+        }
+
+        // Display the message sent
+        Text(
+            text = message,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.body1
+        )
+    }
+}
 @Composable
 fun ChatMessageItem(message: ChatMessage, imageUrl: String?, title:String?) {
 
