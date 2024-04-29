@@ -46,25 +46,26 @@ class ChatViewModel(
     val messagesList = mutableListOf  <ChatMessage>()
 
     fun listenForChatMessages(chatId: String) {
-        Log.d("ChatViewmodel", "CHATID: $articleId")
+        Log.d("ChatViewModel", "CHATID: $chatId")
         val chatQuery = databaseReference.child(chatId)
         val chatListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                val messages = mutableListOf<ChatMessage>()
                 snapshot.children.forEach { nodeSnapshot ->
                     nodeSnapshot.children.forEach { messageSnapshot ->
                         val senderId = messageSnapshot.child("senderId").getValue(String::class.java)
                         val text = messageSnapshot.child("text").getValue(String::class.java)
-                        // You may also want to retrieve the timestamp here
 
                         senderId?.let { senderId ->
                             text?.let { text ->
                                 val chatMessage = ChatMessage(senderId, text)
-                                messagesList.add(chatMessage)
+                                messages.add(chatMessage)
                             }
                         }
                     }
                 }
-                _messages.value = messagesList  // Update _messages LiveData with the new message list
+                // Update _messages LiveData with the new message list
+                _messages.value = messages
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -76,6 +77,7 @@ class ChatViewModel(
         this.chatQuery = chatQuery
         this.chatListener = chatListener
     }
+
 
 
 
@@ -97,12 +99,6 @@ class ChatViewModel(
                         Log.d("ChatViewModel", "Message sent successfully")
                         // Log the original chatId for reference
                         Log.d("ChatViewModel", "Original chatId: $node")
-                        // Create a ChatMessage object for the sent message
-                        val chatMessage = ChatMessage(currentUserUid, message ?: "")
-                        // Add the sent message to the local message list
-                        messagesList.add(chatMessage)
-                        // Update the _messages LiveData with the updated message list
-                        _messages.value = messagesList.toList()
                     }
                     .addOnFailureListener { e ->
                         // Error sending message
