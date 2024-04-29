@@ -11,6 +11,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +31,6 @@ import com.eug.swapz.models.ChatMessage
 import com.eug.swapz.ui.scenes.chat.ChatViewModel
 
 // Data class representing a chat message
-data class ChatMessage(val sender: String, val text: String, val isSentByUser: Boolean)
 
 @Composable
 fun ChatScene(viewModel: ChatViewModel) {
@@ -42,21 +42,23 @@ fun ChatScene(viewModel: ChatViewModel) {
     val imageUrl = article?.carrusel?.get(0)
     val title = article?.title
     // Extract the image URL from the article if available
+
     DisposableEffect(Unit) {
-        viewModel.listenForChatMessages(viewModel.currentChatId.value ?: "")
+        Log.d("ChatScene","ACTUALIZANDO")
+
+        viewModel.listenForChatMessages(currentChatId)
         onDispose {
-            // Cleanup code if needed
+
+            // Clean up the listener when the composable is removed from the composition
         }
     }
-
     Column(modifier = Modifier.fillMaxSize()) {
         // Chat messages
         LazyColumn(
             modifier = Modifier.weight(1f),
             reverseLayout = true // Reverse layout to start from the bottom
-
         ) {
-            items(chatMessages) { message ->
+            items(chatMessages.reversed()) { message ->
                 ChatMessageItem(message, imageUrl, title)
             }
         }
@@ -79,6 +81,7 @@ fun ChatScene(viewModel: ChatViewModel) {
             Button(
                 onClick = {
                     viewModel.sendMessage(messageInput)
+                    viewModel.listenForChatMessages(currentChatId)
                     messageInput = "" // Clear input field after sending message
                 },
                 modifier = Modifier.wrapContentWidth()
@@ -98,7 +101,6 @@ fun ChatScene(viewModel: ChatViewModel) {
 }
 @Composable
 fun ChatMessageItem(message: ChatMessage, imageUrl: String?, title:String?) {
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -139,8 +141,7 @@ fun ChatMessageItem(message: ChatMessage, imageUrl: String?, title:String?) {
                     Log.d("ChatScene", "imageUrl: $imageUrl")
                 }
 
-
-            // Display the text message
+                // Display the text message
                 Text(
                     text = message.text,
                     color = if (message.isSentByUser) Color.Black else Color.White,
@@ -150,4 +151,5 @@ fun ChatMessageItem(message: ChatMessage, imageUrl: String?, title:String?) {
         }
     }
 }
+
 

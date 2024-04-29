@@ -43,13 +43,13 @@ class ChatViewModel(
     private val _article = MutableLiveData<Article?>()
     val article: MutableLiveData<Article?> = _article
     var node: String = ""
+    val messagesList = mutableListOf  <ChatMessage>()
 
     fun listenForChatMessages(chatId: String) {
         Log.d("ChatViewmodel", "CHATID: $articleId")
         val chatQuery = databaseReference.child(chatId)
         val chatListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val messagesList = mutableListOf<ChatMessage>()
                 snapshot.children.forEach { nodeSnapshot ->
                     nodeSnapshot.children.forEach { messageSnapshot ->
                         val senderId = messageSnapshot.child("senderId").getValue(String::class.java)
@@ -64,7 +64,7 @@ class ChatViewModel(
                         }
                     }
                 }
-                _messages.postValue(messagesList)
+                _messages.value = messagesList  // Update _messages LiveData with the new message list
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -97,15 +97,12 @@ class ChatViewModel(
                         Log.d("ChatViewModel", "Message sent successfully")
                         // Log the original chatId for reference
                         Log.d("ChatViewModel", "Original chatId: $node")
-
-                        // **Update the messages LiveData with the new message**
-                        val updatedMessages = messages.value?.toMutableList() ?: mutableListOf()
-                        updatedMessages.add(ChatMessage(
-                            senderId = currentUserUid,
-                            text = message ?: "",
-                            isSentByUser = true
-                        ))
-                        _messages.postValue(updatedMessages)
+                        // Create a ChatMessage object for the sent message
+                        val chatMessage = ChatMessage(currentUserUid, message ?: "")
+                        // Add the sent message to the local message list
+                        messagesList.add(chatMessage)
+                        // Update the _messages LiveData with the updated message list
+                        _messages.value = messagesList.toList()
                     }
                     .addOnFailureListener { e ->
                         // Error sending message
@@ -117,13 +114,11 @@ class ChatViewModel(
             }
         }
     }
-
-
-
-
-
-
-
+    fun cleanupChatMessagesListener() {
+        // Remove the listener for chat messages here
+        // For example, if you're using Firebase Realtime Database:
+        chatQuery.removeEventListener(chatListener)
+    }
 
     fun setUserId(userId: String) {
     }
