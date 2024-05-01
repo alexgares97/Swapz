@@ -38,32 +38,27 @@ fun ChatScene(viewModel: ChatViewModel) {
     val chatMessages by viewModel.messages.observeAsState(emptyList())
     val message by viewModel.message.observeAsState("")
     val currentChatId by viewModel.currentChatId.observeAsState("")
-    val article by viewModel.article.observeAsState()
-    val imageUrl = article?.carrusel?.get(0)
-    val title = article?.title
-    // Extract the image URL from the article if available
+    var isFirstMessage by remember { mutableStateOf(true) }
 
     DisposableEffect(Unit) {
-        Log.d("ChatScene","ACTUALIZANDO")
+        Log.d("ChatScene", "ACTUALIZANDO")
 
         viewModel.listenForChatMessages(currentChatId)
         onDispose {
-
             // Clean up the listener when the composable is removed from the composition
         }
     }
+
     Column(modifier = Modifier.fillMaxSize()) {
-        // Chat messages
         LazyColumn(
             modifier = Modifier.weight(1f),
             reverseLayout = true // Reverse layout to start from the bottom
         ) {
             items(chatMessages.reversed()) { message ->
-                ChatMessageItem(message, imageUrl, title)
+                ChatMessage(message)
             }
         }
 
-        // Message input field and send button
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -90,7 +85,6 @@ fun ChatScene(viewModel: ChatViewModel) {
             }
         }
 
-        // Display the message sent
         Text(
             text = message,
             modifier = Modifier.fillMaxWidth(),
@@ -99,8 +93,9 @@ fun ChatScene(viewModel: ChatViewModel) {
         )
     }
 }
+
 @Composable
-fun ChatMessageItem(message: ChatMessage, imageUrl: String?, title:String?) {
+fun ChatMessage(message: ChatMessage) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -119,16 +114,16 @@ fun ChatMessageItem(message: ChatMessage, imageUrl: String?, title:String?) {
                 horizontalAlignment = Alignment.CenterHorizontally // Center content horizontally
             ) {
                 // Display the image if imageUrl is not null
-                if (!imageUrl.isNullOrEmpty() && !title.isNullOrEmpty()) {
+                if (!message.imageUrl.isNullOrEmpty() && !message.title.isNullOrEmpty()) {
                     Image(
-                        painter = rememberAsyncImagePainter(imageUrl),
+                        painter = rememberAsyncImagePainter(message.imageUrl!!),
                         contentDescription = null,
                         modifier = Modifier
                             .size(100.dp) // Adjust size as needed
                             .align(Alignment.CenterHorizontally) // Center the image horizontally
                     )
                     Text(
-                        text = title ?: "", // Use title if not null, otherwise empty string
+                        text = message.title ?: "", // Use title if not null, otherwise empty string
                         style = TextStyle( // Define text style for the title
                             fontWeight = FontWeight.Bold, // Example: bold
                             fontSize = 18.sp, // Example: 18sp
@@ -138,7 +133,7 @@ fun ChatMessageItem(message: ChatMessage, imageUrl: String?, title:String?) {
                 } else {
                     // Handle the case where imageUrl is null or empty
                     // For example, you can display a placeholder image or hide the Image composable
-                    Log.d("ChatScene", "imageUrl: $imageUrl")
+                    Log.d("ChatScene", "imageUrl: ${message.imageUrl}")
                 }
 
                 // Display the text message
@@ -151,5 +146,7 @@ fun ChatMessageItem(message: ChatMessage, imageUrl: String?, title:String?) {
         }
     }
 }
+
+
 
 

@@ -72,7 +72,8 @@ class ArticleDetailViewModel(
             Log.e("ArticleDetailViewModel", "Current user ID is null")
             return
         }
-
+        val imageUrl = article?.carrusel?.get(0)
+        val title = article?.title
         val message = "¡Hola! Me interesaría intercambiar este artículo:"
 
         val chatsRef = FirebaseDatabase.getInstance().getReference("chats")
@@ -96,7 +97,9 @@ class ArticleDetailViewModel(
                     val messageData = mapOf(
                         "senderId" to currentUserUid,
                         "text" to message,
-                        "timestamp" to timestamp
+                        "imageUrl" to imageUrl,
+                        "title" to title,
+                        "timestamp" to timestamp,
                     )
                     chatRef.child(messageId).setValue(messageData)
                         .addOnSuccessListener {
@@ -119,6 +122,8 @@ class ArticleDetailViewModel(
                     val messageData = mapOf(
                         "senderId" to currentUserUid,
                         "text" to message,
+                        "imageUrl" to imageUrl,
+                        "title" to title,
                         "timestamp" to timestamp
                     )
                     chatRef.child(messageId).setValue(messageData)
@@ -140,9 +145,5 @@ class ArticleDetailViewModel(
             }
         })
     }
-
-
-
-
 
 }

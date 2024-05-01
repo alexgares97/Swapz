@@ -55,10 +55,12 @@ class ChatViewModel(
                     nodeSnapshot.children.forEach { messageSnapshot ->
                         val senderId = messageSnapshot.child("senderId").getValue(String::class.java)
                         val text = messageSnapshot.child("text").getValue(String::class.java)
+                        val imageUrl = messageSnapshot.child("imageUrl").getValue(String::class.java)
+                        val title = messageSnapshot.child("title").getValue(String::class.java)
 
                         senderId?.let { senderId ->
                             text?.let { text ->
-                                val chatMessage = ChatMessage(senderId, text)
+                                val chatMessage = ChatMessage(senderId, text, imageUrl, title)
                                 messages.add(chatMessage)
                             }
                         }
