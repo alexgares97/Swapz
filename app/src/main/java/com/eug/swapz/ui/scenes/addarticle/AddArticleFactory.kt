@@ -10,11 +10,12 @@ import com.eug.swapz.helpers.ComposableFactory
 class AddArticleFactory(
     private val navController: NavController,
     private val sessionDataSource: SessionDataSource,
+    private val articlesDataSource: ArticlesDataSource
 ) :
     ComposableFactory<Any> {
     @Composable
     override fun create(id: String?): Any {
-        val viewModel = AddArticleViewModel(navController = navController, sessionDataSource = sessionDataSource)
+        val viewModel = AddArticleViewModel(navController = navController, sessionDataSource = sessionDataSource, articlesDataSource = articlesDataSource)
         return AddArticle(viewModel) // Pasar el contexto como argumento
     }
 }

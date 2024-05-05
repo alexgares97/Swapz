@@ -119,7 +119,7 @@ fun LoginScene(viewModel: LoginViewModel) {
                 //modifier = Modifier.weight(1f),
                 enabled = !viewModel.isLoading.value
             ) {
-                Text(text = "Login")
+                Text(text = "Entrar")
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -130,7 +130,7 @@ fun LoginScene(viewModel: LoginViewModel) {
                //Modifier.weight(1f),
                 enabled = !viewModel.isLoading.value
             ) {
-                Text(text = "Sign up")
+                Text(text = "Registrarse")
             }
         }
     }

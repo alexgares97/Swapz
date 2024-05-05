@@ -19,7 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -29,6 +31,13 @@ import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.eug.swapz.models.ChatMessage
 import com.eug.swapz.ui.scenes.chat.ChatViewModel
+import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+
 
 // Data class representing a chat message
 
@@ -37,12 +46,17 @@ fun ChatScene(viewModel: ChatViewModel) {
     var messageInput by remember { mutableStateOf("") }
     val chatMessages by viewModel.messages.observeAsState(emptyList())
     val message by viewModel.message.observeAsState("")
-    val currentChatId by viewModel.currentChatId.observeAsState("")
-    var isFirstMessage by remember { mutableStateOf(true) }
+    val currentChatId = viewModel.node
+    val otherUserPhotoUrl by viewModel.otherUserPhotoUrl.observeAsState("")
+    val otherUserName by viewModel.otherUserName.observeAsState("")
+    val currentUserUid = viewModel.getCurrentUserId() ?: return
 
+
+    //val name by viewModel.name.observeAsState("")
     DisposableEffect(Unit) {
         Log.d("ChatScene", "ACTUALIZANDO")
-
+        //viewModel.fetchOtherUserPhotosFromChatId(currentChatId,currentUserUid)
+       viewModel.updateOtherUserDetails(currentChatId, currentUserUid)
         viewModel.listenForChatMessages(currentChatId)
         onDispose {
             // Clean up the listener when the composable is removed from the composition
@@ -50,6 +64,34 @@ fun ChatScene(viewModel: ChatViewModel) {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BackIcon(onClick = { viewModel.goBack() })
+
+            Image(
+                painter = rememberAsyncImagePainter(otherUserPhotoUrl),
+                contentDescription = "User Icon",
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(25.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                text = otherUserName!!,
+                style = MaterialTheme.typography.subtitle1,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+
         LazyColumn(
             modifier = Modifier.weight(1f),
             reverseLayout = true // Reverse layout to start from the bottom
@@ -133,7 +175,6 @@ fun ChatMessage(message: ChatMessage) {
                 } else {
                     // Handle the case where imageUrl is null or empty
                     // For example, you can display a placeholder image or hide the Image composable
-                    Log.d("ChatScene", "imageUrl: ${message.imageUrl}")
                 }
 
                 // Display the text message
@@ -144,6 +185,18 @@ fun ChatMessage(message: ChatMessage) {
                 )
             }
         }
+    }
+}
+@Composable
+fun BackIcon(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    IconButton(onClick = onClick, modifier = modifier) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Back"
+        )
     }
 }
 

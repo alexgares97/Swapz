@@ -1,6 +1,7 @@
 package com.eug.swapz.datasources.interfaces
 
 
+import android.location.Location
 import com.google.firebase.auth.FirebaseUser
 
 interface ISessionDataSource {
@@ -43,7 +44,7 @@ interface ISessionDataSource {
      *
      * @return True if the signup was successful, false otherwise.
      */
-    suspend fun signUpUser(email: String, password: String, username: String, name: String): Boolean
+    suspend fun signUpUser(email: String, password: String, username: String, name: String, photo: String): Boolean
 
     /**
      * Signs out the currently authenticated user using Firebase Authentication.

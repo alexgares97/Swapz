@@ -1,12 +1,15 @@
 package com.eug.swapz.datasources
 
 
+import android.content.ContentValues
+import android.util.Log
 import com.eug.swapz.datasources.interfaces.IMainDataSource
 import com.eug.swapz.models.Article
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -171,5 +174,42 @@ class ArticlesDataSource(private val database: FirebaseDatabase) : IMainDataSour
                 }
             })
         }
+    }
+
+    suspend fun addArticle(article: Article) {
+        try {
+            // Get a reference to the articles node
+            val articlesQuery = FirebaseDatabase.getInstance().getReference("articles").orderByKey().limitToLast(1)
+            val dataSnapshot = articlesQuery.get().await()
+
+            // Retrieve the key of the last article
+            val lastArticleKey = dataSnapshot.children.firstOrNull()?.key
+
+            // Increment the numeric part of the last article key and generate the new key
+            val newArticleKey = getNextArticleKey(lastArticleKey)
+
+            // Get a reference to the new article location
+            val newArticleRef = FirebaseDatabase.getInstance().getReference("articles").child(newArticleKey)
+
+            // Set the values for the new article
+            newArticleRef.setValue(article).await()
+
+            Log.d(ContentValues.TAG, "Article added successfully")
+        } catch (e: Exception) {
+            // Error occurred while adding the article
+            Log.e(ContentValues.TAG, "Error adding article", e)
+            // You can handle the error appropriately, e.g., show an error message to the user
+        }
+    }
+    private fun getNextArticleKey(lastArticleKey: String?): String {
+        var nextKey = "art01" // Default key if there are no existing articles
+
+        // If a last article key is available, extract the numeric part and increment it
+        lastArticleKey?.let { key ->
+            val numericPart = key.substring(3).toIntOrNull() ?: 0
+            val nextNumericPart = numericPart + 1
+            nextKey = "art${String.format("%02d", nextNumericPart)}"
+        }
+        return nextKey
     }
 }

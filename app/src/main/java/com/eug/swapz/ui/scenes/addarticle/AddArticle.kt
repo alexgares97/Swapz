@@ -346,7 +346,7 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                                     descFieldValue.value.text,
                                     selectedStatus.value.text,
                                     selectedCat.value.text,
-                                    value.value.text.toIntOrNull(),
+                                    value.value.text.toIntOrNull() ?: 0, // Use 0 as the default value if the conversion fails
                                     imageUrl.value.map { it.text }
                                 )
                                 viewModel.navigateToMain()

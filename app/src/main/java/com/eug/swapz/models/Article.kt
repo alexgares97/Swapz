@@ -8,8 +8,8 @@ data class Article(
     var cat: String = "",
     var value: Int = 0,
     var id: String? = "",
-    val carrusel: List<String>?,
-    var img: String? = "",
+    val carrusel: List<String>,
+    var img: String = "",
     var user: String = ""
 
     //var imageUrl: String = "",

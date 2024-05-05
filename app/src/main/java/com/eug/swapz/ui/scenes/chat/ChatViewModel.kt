@@ -44,26 +44,29 @@ class ChatViewModel(
     val article: MutableLiveData<Article?> = _article
     var node: String = ""
     val messagesList = mutableListOf  <ChatMessage>()
+    private val _otherUserPhotoUrl = MutableLiveData<String?>()
+    val otherUserPhotoUrl: LiveData<String?> = _otherUserPhotoUrl
+    private val _otherUserName = MutableLiveData<String?>()
+    val otherUserName: LiveData<String?> = _otherUserName
 
-    fun listenForChatMessages(chatId: String) {
-        Log.d("ChatViewModel", "CHATID: $chatId")
-        val chatQuery = databaseReference.child(chatId)
+    fun listenForChatMessages(currentChatId: String) {
+        Log.d("ChatViewModel", "CHATID: $currentChatId")
+        val chatQuery = databaseReference.child(currentChatId)
         val chatListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val messages = mutableListOf<ChatMessage>()
-                snapshot.children.forEach { nodeSnapshot ->
-                    nodeSnapshot.children.forEach { messageSnapshot ->
-                        val senderId = messageSnapshot.child("senderId").getValue(String::class.java)
-                        val text = messageSnapshot.child("text").getValue(String::class.java)
-                        val imageUrl = messageSnapshot.child("imageUrl").getValue(String::class.java)
-                        val title = messageSnapshot.child("title").getValue(String::class.java)
+                // Iterate through each child node (message ID) under the currentChatId
+                snapshot.children.forEach { messageSnapshot ->
+                    // Retrieve senderId, text, imageUrl, and title from the messageSnapshot
+                    val senderId = messageSnapshot.child("senderId").getValue(String::class.java)
+                    val text = messageSnapshot.child("text").getValue(String::class.java)
+                    val imageUrl = messageSnapshot.child("imageUrl").getValue(String::class.java)
+                    val title = messageSnapshot.child("title").getValue(String::class.java)
 
-                        senderId?.let { senderId ->
-                            text?.let { text ->
-                                val chatMessage = ChatMessage(senderId, text, imageUrl, title)
-                                messages.add(chatMessage)
-                            }
-                        }
+                    // Check if all required fields are not null
+                    if (senderId != null && text != null) {
+                        val chatMessage = ChatMessage(senderId, text, imageUrl, title)
+                        messages.add(chatMessage)
                     }
                 }
                 // Update _messages LiveData with the new message list
@@ -75,13 +78,11 @@ class ChatViewModel(
                 Log.e("ChatViewModel", "Database error: ${error.message}")
             }
         }
+        // Add a single ValueEventListener to the chatQuery
         chatQuery.addValueEventListener(chatListener)
         this.chatQuery = chatQuery
         this.chatListener = chatListener
     }
-
-
-
 
     fun sendMessage(message: String?) {
         val currentUserUid = sessionDataSource.getCurrentUserId() ?: return
@@ -135,18 +136,51 @@ class ChatViewModel(
             }
         }
     }
+    fun updateOtherUserDetails(chatId: String, currentUserId: String) {
+        // Split the chat ID to retrieve the user IDs
+        val userIds = chatId.split("-")
+
+        // Find the user ID that is not the current user's ID
+        val otherUserId = userIds.find { it != currentUserId }
+
+        // Ensure otherUserId is not null
+        otherUserId?.let { userId ->
+            // Retrieve user details from the Firebase Realtime Database
+            val usersReference = FirebaseDatabase.getInstance().getReference("users")
+            val userQuery = usersReference.child(userId)
+            userQuery.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val photoUrl = snapshot.child("photo").getValue(String::class.java)
+                    val name = snapshot.child("name").getValue(String::class.java)
+
+                    // Update the LiveData with the other user's photo URL
+                    _otherUserPhotoUrl.value = photoUrl
+                    _otherUserName.value = name
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    // Handle error
+                    Log.e("ChatViewModel", "Database error: ${error.message}")
+                }
+            })
+        }
+    }
+
+
     fun setChatId(chatId: String) {
         node = chatId
     }
 
-
+    fun getCurrentUserId(): String? {
+        return sessionDataSource.getCurrentUserId()
+    }
     override fun onCleared() {
         // Remove the ValueEventListener when ViewModel is cleared
         chatQuery.removeEventListener(chatListener)
         super.onCleared()
     }
 
-    fun home() {
+    fun goBack() {
         navController.popBackStack()
     }
 

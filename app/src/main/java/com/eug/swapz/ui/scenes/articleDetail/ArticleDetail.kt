@@ -11,6 +11,7 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonColors
 import androidx.compose.material.ButtonDefaults
@@ -55,7 +56,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
     val images = article.carrusel ?: emptyList()
     val pagerState = rememberPagerState(pageCount = { images.size })
     var userId = article.user
-
+    var showConfirmationDialog by remember { mutableStateOf(false) } // State for showing the dialog
     // Conditionally show the top bar only if image is not clicked
     if (!onClickImg) {
         Scaffold(
@@ -65,7 +66,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     actions = {
 
                             Button(
-                                onClick = { viewModel.startExchange(userId,article) },
+                                onClick = { showConfirmationDialog = true },
                                 modifier = Modifier.padding(horizontal = 55.dp)
                                     .align(Alignment.CenterVertically),
                                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
@@ -113,6 +114,8 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     }
                 )
             }
+
+
         ) { innerPadding ->
             // Column content
             // Use innerPadding for content padding
@@ -185,6 +188,35 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     }
                 }
             }
+            if (showConfirmationDialog) {
+                AlertDialog(
+                    onDismissRequest = {
+                    },
+                    title = {
+                        Text(text = "Confirmar intercambio")
+                    },
+                    text = {
+                        Text(text = "¿Estás seguro que deseas intercambiar este artículo?")
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                viewModel.startExchange(userId,article)
+                            }
+                        ) {
+                            Text("Confirmar")
+                        }
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = {
+                            }
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
+            }
         }
     } else {
         // Show the image gallery when image is clicked
@@ -222,6 +254,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
             )
         }
     }
+
 }
 
 

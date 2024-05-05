@@ -41,7 +41,7 @@ fun MyApp() {
         MainSceneFactory(navController, sessionDataSource, articlesDataSource)
     val registerFactory = RegisterFactory(navController, sessionDataSource)
     val articleDetailFactory = ArticleDetailFactory(navController, articlesDataSource, sessionDataSource)
-    val addArticleFactory = AddArticleFactory(navController, sessionDataSource)
+    val addArticleFactory = AddArticleFactory(navController, sessionDataSource, articlesDataSource)
     val inventoryFactory = InventoryFactory(navController, sessionDataSource, articlesDataSource)
     val filterFactory = FilterFactory(navController,sessionDataSource,articlesDataSource)
     val chatFactory = ChatFactory(navController, sessionDataSource, articlesDataSource)

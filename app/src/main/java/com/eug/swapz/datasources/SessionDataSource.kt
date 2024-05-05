@@ -2,13 +2,16 @@ package com.eug.swapz.datasources
 
 
 import android.content.ContentValues.TAG
+import android.location.Location
 import android.util.Log
 import com.eug.swapz.datasources.interfaces.ISessionDataSource
+import com.eug.swapz.models.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
-
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.tasks.await
+
 
 /**
  * A data source for Firebase Authentication. This class provides methods for logging in,
@@ -66,7 +69,7 @@ class SessionDataSource : ISessionDataSource{
         }
     }
 
-    override suspend fun signUpUser(email: String, password: String, username: String, name: String): Boolean {
+    override suspend fun signUpUser(email: String, password: String, username: String, name: String, photo: String): Boolean {
         this.signOutUser()
         return try {
             // Create a new user account with the specified email and password using the
@@ -78,14 +81,26 @@ class SessionDataSource : ISessionDataSource{
                     .setDisplayName(username)
                     .build()
                 user.updateProfile(profileUpdates).await()
+                val userId = user.uid
+                val usersRef = FirebaseDatabase.getInstance().getReference("users")
+                if (userId != null) {
+                    val user = User(username, name, photo)
+                    usersRef.child(userId).setValue(user).await()
+                }
             }
+
+            // Save user data to Firebase Realtime Database
+
+
+
             // Return true if the signup was successful (i.e., the user is not null)
-            result.user != null
+            true
         } catch (e: Exception) {
             // If an exception occurs, return false to indicate that the signup was not successful
             false
         }
     }
+
 
 
     override fun signOutUser() {
