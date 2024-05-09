@@ -1,5 +1,7 @@
 package com.eug.swapz.ui.scenes.chatList
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -23,42 +25,82 @@ class ChatListViewModel(
     private val sessionDataSource: SessionDataSource,
 
     ) : ViewModel() {
-    private val _chatListState = MutableStateFlow<List<Chat>>(emptyList())
-    val chatListState: StateFlow<List<Chat>> = _chatListState
+    private val _chatList = MutableLiveData<List<Chat>>()
+    val chatList: LiveData<List<Chat>> = _chatList
 
-    private val _chatListLiveData = MutableLiveData<List<Chat>>()
-    val chatListLiveData: LiveData<List<Chat>> = _chatListLiveData
 
+    private val userId = sessionDataSource.getCurrentUserId()
     fun fetchChatList() {
-        viewModelScope.launch {
-            try {
-                val chatList = fetchChatListFromFirebase()
-                _chatListLiveData.value = chatList
-            } catch (e: Exception) {
-                // Handle error fetching chat list
+        userId?.let { userId ->
+            fetchChatListFromFirebase(userId) { chatList ->
+                _chatList.postValue(chatList)
+                Log.d(TAG, "fetchChatList: $chatList")
             }
         }
     }
 
-    private suspend fun fetchChatListFromFirebase(): List<Chat> = withContext(Dispatchers.IO) {
+    private fun fetchChatListFromFirebase(userId: String, callback: (List<Chat>) -> Unit) {
+        val databaseReference = FirebaseDatabase.getInstance().getReference("chats")
+        val chatQuery = databaseReference.orderByKey().startAt("$userId-").endAt("$userId-\uf8ff")
+        Log.d(TAG, "fetchChatListFromFirebase: $chatQuery")
+
         val chatList = mutableListOf<Chat>()
-        FirebaseDatabase.getInstance().getReference("chats").addListenerForSingleValueEvent(object : ValueEventListener {
+
+        chatQuery.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                val chatId = snapshot.key ?: "" // Assuming the chat ID is the key of the snapshot
                 for (chatSnapshot in snapshot.children) {
-                    val chat = chatSnapshot.getValue(Chat::class.java)
-                    chat?.let {
-                        chatList.add(it)
+                    // Get the last child node of each chatSnapshot
+                    val lastMessageSnapshot = chatSnapshot.children.lastOrNull()
+
+                    lastMessageSnapshot?.let { messageSnapshot ->
+                        val text = messageSnapshot.child("text").getValue(String::class.java)
+                        Log.d(TAG, "onDataChange: $text")
+
+                        if (text != null) {
+                            val otherUserId = chatSnapshot.key?.split("-")?.find { it != userId }
+                            if (otherUserId != null) {
+                                val usersReference = FirebaseDatabase.getInstance().getReference("users").child(otherUserId)
+                                usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
+                                    override fun onDataChange(userSnapshot: DataSnapshot) {
+                                        val name = userSnapshot.child("name").getValue(String::class.java)
+                                        val photoUrl = userSnapshot.child("photo").getValue(String::class.java)
+                                        if (name != null && photoUrl != null) {
+                                            val chat = Chat(name, text, photoUrl)
+                                            chatList.add(chat)
+                                        }
+                                        // Check if all chat messages are processed
+                                        if (chatList.size.toLong() == snapshot.childrenCount) {
+                                            callback(chatList)
+                                        }
+                                    }
+
+                                    override fun onCancelled(error: DatabaseError) {
+                                        // Handle onCancelled event
+                                    }
+                                })
+                            }
+                        }
                     }
                 }
-                _chatListLiveData.postValue(chatList)
             }
 
             override fun onCancelled(error: DatabaseError) {
                 // Handle onCancelled event
             }
         })
-        return@withContext chatList
     }
+
+
+
+
+
+
+
+
+
+
+
     fun navigateToChat(chatId: String){
 
     }
