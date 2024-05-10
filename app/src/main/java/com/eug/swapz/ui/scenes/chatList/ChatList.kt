@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
@@ -27,11 +28,8 @@ import com.eug.swapz.ui.scenes.chatList.ChatListViewModel
 fun ChatList(viewModel: ChatListViewModel) {
     val chatListState = viewModel.chatList.observeAsState(emptyList())
 
-    DisposableEffect(Unit) {
+    LaunchedEffect(Unit) {
         viewModel.fetchChatList()
-        onDispose {
-            // Clean up the listener when the composable is removed from the composition
-        }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -51,7 +49,7 @@ fun ChatList(viewModel: ChatListViewModel) {
                 items(chatListState.value) { chat ->
                     ChatListItem(chat = chat) {
                         // Navigate to chat detail screen when a chat item is clicked
-                        viewModel.navigateToChat(chatId = chat.id)
+                        viewModel.navigateToChat(chat.id, chat.otherUserId)
                     }
                 }
             }

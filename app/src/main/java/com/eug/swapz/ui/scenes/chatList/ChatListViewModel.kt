@@ -19,107 +19,97 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
 
 class ChatListViewModel(
     private val navController: NavController,
-    private val sessionDataSource: SessionDataSource,
-
-    ) : ViewModel() {
+    private val sessionDataSource: SessionDataSource
+) : ViewModel() {
     private val _chatList = MutableLiveData<List<Chat>>()
     val chatList: LiveData<List<Chat>> = _chatList
-   var _otherUserId = ""
-
 
     private val userId = sessionDataSource.getCurrentUserId()
-    fun fetchChatList() {
+
+    suspend fun fetchChatList() {
         userId?.let { userId ->
-            fetchChatListFromFirebase(userId) { chatList ->
-                _chatList.postValue(chatList)
-                Log.d(TAG, "fetchChatList: $chatList")
-            }
+            val chatList = fetchChatListFromFirebase(userId)
+            _chatList.postValue(chatList)
+            Log.d(TAG, "fetchChatList: $chatList")
         }
     }
 
-    private fun fetchChatListFromFirebase(userId: String, callback: (List<Chat>) -> Unit) {
-        val databaseReference = FirebaseDatabase.getInstance().getReference("chats")
-        val chatQuery = databaseReference.orderByKey().startAt("$userId-").endAt("$userId-\uf8ff")
-        Log.d(TAG, "fetchChatListFromFirebase: $chatQuery")
+    private suspend fun fetchChatListFromFirebase(userId: String): List<Chat> {
+        return suspendCancellableCoroutine { continuation ->
+            val databaseReference = FirebaseDatabase.getInstance().getReference("chats")
+            val chatQuery = databaseReference.orderByKey().startAt("$userId-").endAt("$userId-\uf8ff")
+            Log.d(TAG, "fetchChatListFromFirebase: $chatQuery")
 
-        val chatList = mutableListOf<Chat>()
+            val chatList = mutableListOf<Chat>()
 
-        chatQuery.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (chatSnapshot in snapshot.children) {
-                    val chatId = chatSnapshot.key ?: "" // Assuming the chat ID is the key of the snapshot
-                    Log.d(TAG, "onDataChange: $chatId")
-                    // Get the last child node of each chatSnapshot
-                    val lastMessageSnapshot = chatSnapshot.children.lastOrNull()
+            chatQuery.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (chatSnapshot in snapshot.children) {
+                        val chatId = chatSnapshot.key ?: ""
+                        val lastMessageSnapshot = chatSnapshot.children.lastOrNull()
 
-                    lastMessageSnapshot?.let { messageSnapshot ->
-                        val text = messageSnapshot.child("text").getValue(String::class.java)
-                        Log.d(TAG, "onDataChange: $text")
+                        lastMessageSnapshot?.let { messageSnapshot ->
+                            val text = messageSnapshot.child("text").getValue(String::class.java)
 
-                        if (text != null) {
-                            val otherUserId = chatSnapshot.key?.split("-")?.find { it != userId }
-                            if (otherUserId != null) {
-                                _otherUserId = otherUserId
-                                val usersReference = FirebaseDatabase.getInstance().getReference("users").child(otherUserId)
-                                usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
-                                    override fun onDataChange(userSnapshot: DataSnapshot) {
-                                        val name = userSnapshot.child("name").getValue(String::class.java)
-                                        val photoUrl = userSnapshot.child("photo").getValue(String::class.java)
-                                        if (name != null && photoUrl != null) {
-                                            val chat = Chat(chatId,name, text, photoUrl)
-                                            chatList.add(chat)
+                            if (text != null) {
+                                val otherUserId = chatSnapshot.key?.split("-")?.find { it != userId }
+                                if (otherUserId != null) {
+                                    val usersReference = FirebaseDatabase.getInstance().getReference("users").child(otherUserId)
+                                    usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
+                                        override fun onDataChange(userSnapshot: DataSnapshot) {
+                                            val name = userSnapshot.child("name").getValue(String::class.java)
+                                            val photoUrl = userSnapshot.child("photo").getValue(String::class.java)
+                                            if (name != null && photoUrl != null) {
+                                                val chat = Chat(chatId,otherUserId, name, text, photoUrl)
+                                                chatList.add(chat)
+                                            }
+                                            // Check if all chat messages are processed
+                                            if (chatList.size == snapshot.childrenCount.toInt()) {
+                                                continuation.resume(chatList)
+                                            }
                                         }
-                                        // Check if all chat messages are processed
-                                        if (chatList.size.toLong() == snapshot.childrenCount) {
-                                            callback(chatList)
-                                        }
-                                    }
 
-                                    override fun onCancelled(error: DatabaseError) {
-                                        // Handle onCancelled event
-                                    }
-                                })
+                                        override fun onCancelled(error: DatabaseError) {
+                                            continuation.cancel(error.toException())
+                                        }
+                                    })
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                // Handle onCancelled event
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                    continuation.cancel(error.toException())
+                }
+            })
+        }
     }
+
     fun goBack() {
         navController.popBackStack()
     }
 
-
-
-
-
-
-
-
-
-    private fun navigateToExchange(userId: String,article: Article, chatId: String ) {
+    private fun navigateToExchange(userId: String, article: Article, chatId: String) {
         viewModelScope.launch {
             Log.d(TAG, "Navigating to exchange with user id: $userId")
             navController.navigate("${AppRoutes.CHAT.value}/$userId/${article.id}/$chatId")
         }
     }
 
-    fun navigateToChat(chatId: String ) {
-
+    fun navigateToChat(chatId: String, otherUserId: String) {
         viewModelScope.launch {
-            Log.d(TAG, "Navigating to exchange with user id: $_otherUserId")
-            navController.navigate("${AppRoutes.CHAT.value}/$_otherUserId/$chatId")
+            Log.d(TAG, "Navigating to exchange with user id: $otherUserId")
+            navController.navigate("${AppRoutes.CHAT.value}/$otherUserId/$chatId")
         }
     }
+
     fun signOut() {
         viewModelScope.launch {
             sessionDataSource.signOutUser()
