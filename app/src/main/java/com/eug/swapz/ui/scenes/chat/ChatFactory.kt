@@ -32,4 +32,11 @@ class ChatFactory (
         // Create a ChatScene composable with the ChatViewModel
         ChatScene(viewModel = viewModel)
     }
+    @Composable
+    fun createFromList(userId: String?, chatId: String?) {
+        val viewModel = ChatViewModel(navController, sessionDataSource, articlesDataSource)
+        userId?.let { viewModel.setUserId(it) }
+        chatId?.let { viewModel.setChatId(it) }
+        ChatScene(viewModel = viewModel)
+    }
 }

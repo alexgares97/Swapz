@@ -20,4 +20,5 @@ class ChatListFactory (
         val viewModel = ChatListViewModel(navController, sessionDataSource)
         return ChatList(viewModel)
     }
+
 }

@@ -145,7 +145,20 @@ fun MyApp() {
             ){
                 chatListFactory.create(null)
             }
-
+            composable(
+                route = "${AppRoutes.CHAT.value}/{userId}/{chatId}",
+                arguments = listOf(
+                    navArgument("userId") { type = NavType.StringType },
+                    navArgument("chatId") { type = NavType.StringType }
+                )
+            ){
+                backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId")
+                val chatId = backStackEntry.arguments?.getString("chatId")
+                if (userId != null && chatId != null) {
+                    chatFactory.createFromList(userId, chatId)
+                }
+            }
         }
     }
 }

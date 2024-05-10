@@ -2,6 +2,7 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +12,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -49,7 +51,7 @@ fun ChatList(viewModel: ChatListViewModel) {
                 items(chatListState.value) { chat ->
                     ChatListItem(chat = chat) {
                         // Navigate to chat detail screen when a chat item is clicked
-                        //viewModel.navigateToChat(chatId = chat.id)
+                        viewModel.navigateToChat(chatId = chat.id)
                     }
                 }
             }
@@ -79,8 +81,7 @@ fun ChatListItem(chat: Chat, onClick: () -> Unit) {
         elevation = 4.dp
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = chat.name)
-            Text(text = chat.text)//align
+
             Image(
                 painter = rememberAsyncImagePainter(chat.photoUrl),
                 contentDescription = "User Icon",
@@ -89,6 +90,16 @@ fun ChatListItem(chat: Chat, onClick: () -> Unit) {
                     .clip(RoundedCornerShape(25.dp)),
                 contentScale = ContentScale.Crop
             )
+            Text(text = chat.name)
+
         }
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = chat.text)//align
+
+        }
+
     }
 }

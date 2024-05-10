@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.eug.swapz.AppRoutes
 import com.eug.swapz.datasources.SessionDataSource
+import com.eug.swapz.models.Article
 import com.eug.swapz.models.Chat
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -27,6 +28,7 @@ class ChatListViewModel(
     ) : ViewModel() {
     private val _chatList = MutableLiveData<List<Chat>>()
     val chatList: LiveData<List<Chat>> = _chatList
+   var _otherUserId = ""
 
 
     private val userId = sessionDataSource.getCurrentUserId()
@@ -48,8 +50,9 @@ class ChatListViewModel(
 
         chatQuery.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val chatId = snapshot.key ?: "" // Assuming the chat ID is the key of the snapshot
                 for (chatSnapshot in snapshot.children) {
+                    val chatId = chatSnapshot.key ?: "" // Assuming the chat ID is the key of the snapshot
+                    Log.d(TAG, "onDataChange: $chatId")
                     // Get the last child node of each chatSnapshot
                     val lastMessageSnapshot = chatSnapshot.children.lastOrNull()
 
@@ -60,13 +63,14 @@ class ChatListViewModel(
                         if (text != null) {
                             val otherUserId = chatSnapshot.key?.split("-")?.find { it != userId }
                             if (otherUserId != null) {
+                                _otherUserId = otherUserId
                                 val usersReference = FirebaseDatabase.getInstance().getReference("users").child(otherUserId)
                                 usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
                                     override fun onDataChange(userSnapshot: DataSnapshot) {
                                         val name = userSnapshot.child("name").getValue(String::class.java)
                                         val photoUrl = userSnapshot.child("photo").getValue(String::class.java)
                                         if (name != null && photoUrl != null) {
-                                            val chat = Chat(name, text, photoUrl)
+                                            val chat = Chat(chatId,name, text, photoUrl)
                                             chatList.add(chat)
                                         }
                                         // Check if all chat messages are processed
@@ -90,6 +94,9 @@ class ChatListViewModel(
             }
         })
     }
+    fun goBack() {
+        navController.popBackStack()
+    }
 
 
 
@@ -99,10 +106,19 @@ class ChatListViewModel(
 
 
 
+    private fun navigateToExchange(userId: String,article: Article, chatId: String ) {
+        viewModelScope.launch {
+            Log.d(TAG, "Navigating to exchange with user id: $userId")
+            navController.navigate("${AppRoutes.CHAT.value}/$userId/${article.id}/$chatId")
+        }
+    }
 
+    fun navigateToChat(chatId: String ) {
 
-    fun navigateToChat(chatId: String){
-
+        viewModelScope.launch {
+            Log.d(TAG, "Navigating to exchange with user id: $_otherUserId")
+            navController.navigate("${AppRoutes.CHAT.value}/$_otherUserId/$chatId")
+        }
     }
     fun signOut() {
         viewModelScope.launch {
