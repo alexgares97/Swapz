@@ -26,15 +26,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -57,15 +62,18 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
     val pagerState = rememberPagerState(pageCount = { images.size })
     var userId = article.user
     var showConfirmationDialog by remember { mutableStateOf(false) } // State for showing the dialog
+    val otherUserName by viewModel.otherUserName.observeAsState("")
     // Conditionally show the top bar only if image is not clicked
+    viewModel.fetchUserName(userId)
     if (!onClickImg) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(text = stringResource(R.string.app_name)) },
+                    title = { Text(text = otherUserName?:"") },
                     actions = {
 
-                            Button(
+                           if(userId != viewModel.getCurrentUserId())
+                               Button(
                                 onClick = { showConfirmationDialog = true },
                                 modifier = Modifier.padding(horizontal = 55.dp)
                                     .align(Alignment.CenterVertically),
@@ -75,42 +83,6 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                 ) {
                                 Text(text = "Intercambiar", color = Color.White)
                             }
-
-
-                        IconButton(onClick = { viewModel.home() }) {
-                            Box(
-                                Modifier
-                                    .size(37.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color.Green)
-                            ) {
-                                Icon(
-                                    Icons.Filled.Home,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier
-                                        .padding(4.dp)
-                                        .align(Alignment.Center)
-                                )
-                            }
-                        }
-                        IconButton(onClick = { viewModel.signOut() }) {
-                            Box(
-                                Modifier
-                                    .size(37.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Color.Green)
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ExitToApp,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .padding(4.dp)
-                                )
-                            }
-                        }
                     }
                 )
             }
@@ -164,26 +136,62 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                 }
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFF6200EE)) // Purple color
-                        .padding(5.dp)
+                        .width(390.dp)
+                        .height(30.dp) // Ajustar la altura del footer
+                        .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)) // Bordes redondeados en la parte superior
+                        .widthIn(min = 280.dp, max = 360.dp) // Ajustar el ancho del Row
+
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(Color(0xFF2F96D8).copy(alpha = 0.9f), Color(0xFF1A73E8).copy(alpha = 0.9f))
+                            )
+                        )
+                        .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) // Añadir sombra para dar efecto de elevación
+                        .padding(horizontal = 24.dp) // Padding horizontal
                         .align(Alignment.BottomCenter),
-                    horizontalArrangement = Arrangement.Center, // Center horizontally
+                    horizontalArrangement = Arrangement.SpaceEvenly, // Espaciar elementos equitativamente
                     verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        Modifier
-                            .size(30.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color.Green)
-                            .clickable { viewModel.navigateToAddArticle() }
-                    ) {
+                ){
+                    IconButton(onClick = { viewModel.home() }) {
+                        Icon(
+                            Icons.Filled.Home,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp) // Tamaño del ícono aumentado
+                        )
+                    }
+                    IconButton(onClick = { viewModel.navigateToChatList() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Chat,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    IconButton(onClick = { viewModel.navigateToAddArticle() }) {
                         Icon(
                             Icons.Filled.AddBox,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.align(Alignment.Center)
-                                .size(50.dp)// Center icon within Box
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+
+                    IconButton(onClick = { viewModel.navigateToInventory() }) {
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = "Profile",
+                            modifier = Modifier.size(20.dp),
+                            tint = Color.White
+                        )
+                    }
+
+                    IconButton(onClick = { viewModel.signOut() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }

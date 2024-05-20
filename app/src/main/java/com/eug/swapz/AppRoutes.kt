@@ -11,5 +11,6 @@ enum class AppRoutes(val value: String) {
     FILTER("Filter"),
     CHAT("Chat"),
     CHAT_EXCHANGE("ChatExchange"),
-    CHAT_LIST("ChatList")
+    CHAT_LIST("ChatList"),
+    EDIT_ARTICLE("EditArticle")
 }

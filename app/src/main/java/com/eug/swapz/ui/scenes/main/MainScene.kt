@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -29,7 +31,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
@@ -37,27 +42,25 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.eug.swapz.R
-import com.eug.swapz.datasources.SessionDataSource
-import com.eug.swapz.ui.scenes.login.LoginFactory
-import com.eug.swapz.ui.theme.SwapzTheme
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
+import com.eug.swapz.R
+import com.eug.swapz.datasources.SessionDataSource
 import com.eug.swapz.models.Article
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import com.eug.swapz.ui.scenes.filters.FilterViewModel
-
+import com.eug.swapz.ui.scenes.login.LoginFactory
+import com.eug.swapz.ui.theme.SwapzTheme
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,10 +88,8 @@ fun MainScene(viewModel: MainViewModel) {
         }
     ) {
         Spacer(modifier = Modifier.height(20.dp))
-        Box(modifier = Modifier.fillMaxSize())
-        {
+        Box(modifier = Modifier.fillMaxSize()) {
             if (filteredArticles.isEmpty()) {
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -212,8 +213,7 @@ fun MainScene(viewModel: MainViewModel) {
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 val articlesByCategory = articles.groupBy { it.cat }
 
                 // Display search results if there are any
@@ -270,48 +270,69 @@ fun MainScene(viewModel: MainViewModel) {
             }
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF6200EE)) // Purple color
-                    .padding(5.dp)
+                    .width(390.dp)
+                    .height(30.dp) // Ajustar la altura del footer
+                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)) // Bordes redondeados en la parte superior
+                    .widthIn(min = 280.dp, max = 360.dp) // Ajustar el ancho del Row
+
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color(0xFF2F96D8).copy(alpha = 0.9f), Color(0xFF1A73E8).copy(alpha = 0.9f))
+                        )
+                    )
+                    .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) // Añadir sombra para dar efecto de elevación
+                    .padding(horizontal = 24.dp) // Padding horizontal
                     .align(Alignment.BottomCenter),
-                horizontalArrangement = Arrangement.Center, // Center horizontally
+                horizontalArrangement = Arrangement.SpaceEvenly, // Espaciar elementos equitativamente
                 verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    Modifier
-                        .size(30.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Green)
-                        .clickable { viewModel.navigateToAddArticle() }
-                ) {
+            ){
+                IconButton(onClick = { viewModel.home() }) {
                     Icon(
-                        Icons.Filled.AddBox,
+                        Icons.Filled.Home,
                         contentDescription = null,
-                        // tint = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(50.dp)// Center icon within Box
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp) // Tamaño del ícono aumentado
                     )
                 }
-                Box(
-                    Modifier
-                        .size(30.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Yellow)
-                        .clickable { viewModel.navigateToChatList()}
-                ) {
+                IconButton(onClick = { viewModel.navigateToChatList() }) {
                     Icon(
                         Icons.AutoMirrored.Filled.Chat,
                         contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(50.dp)// Center icon within Box
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                IconButton(onClick = { viewModel.navigateToAddArticle() }) {
+                    Icon(
+                        Icons.Filled.AddBox,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                IconButton(onClick = { viewModel.navigateToInventory() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Person,
+                        contentDescription = "Profile",
+                        modifier = Modifier.size(20.dp),
+                        tint = Color.White
+                    )
+                }
+
+                IconButton(onClick = { viewModel.signOut() }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
         }
     }
 }
+
 private fun performSearch(
     articles: List<Article>,
     query: String,
@@ -370,23 +391,9 @@ fun CustomTopAppBar(
                 )
             }
         }
-
-        // Spacing to align the profile icon to the right
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Profile Icon
-        IconButton(
-            onClick = { viewModel.navigateToInventory() },
-            modifier = Modifier.padding(horizontal = 1.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Person,
-                contentDescription = "Profile",
-                modifier = Modifier.size(24.dp)
-            )
-        }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun MainScenePreview() {

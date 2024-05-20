@@ -1,6 +1,5 @@
 package com.eug.swapz.ui.scenes.inventory
 
-
 import android.annotation.SuppressLint
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
@@ -12,8 +11,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -29,13 +31,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.AddBox
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
@@ -50,7 +55,6 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.eug.swapz.models.Article
 
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,50 +66,14 @@ fun InventoryScene(viewModel: InventoryViewModel) {
 
     var articleToDelete by remember { mutableStateOf<Article?>(null) }
 
-
     LaunchedEffect(Unit) {
         viewModel.fetch()
     }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {Text(text = username ?: "Inventory")},// Use the retrieved username as the title }, // Accessing viewModel.username correctly
-                actions = {
-                    IconButton(onClick = { viewModel.navigateToMain() }) {
-                        Box(
-                            Modifier
-                                .size(37.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.Green)
-                        ) {
-                            Icon(
-                                Icons.Filled.Home,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .align(Alignment.Center)
-                            )
-                        }
-                    }
-                    IconButton(onClick = { viewModel.signOut() }) {
-                        Box(
-                            Modifier
-                                .size(37.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.Green)
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ExitToApp,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(4.dp)
-                            )
-                        }
-                    }
-                }
+                title = { Text(text = username ?: "Inventory", color = Color.White) }, // Use the retrieved username as the title }, // Accessing viewModel.username correctly
+                backgroundColor = Color(0xFF2F96D8)
             )
         }
 
@@ -113,66 +81,75 @@ fun InventoryScene(viewModel: InventoryViewModel) {
 
         Box(modifier = Modifier.fillMaxSize())
         {
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 128.dp)
-                ) {
-                    items(
-                        items = articles,
-                        itemContent = { article ->
-                            Column(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable { viewModel.navigateToDetail(article) }
-                            ) {
-                                Image(
-                                    painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(200.dp)
-                                        .padding(top = 70.dp, start = 12.dp, end = 12.dp)
-                                        .clip(RoundedCornerShape(8.dp)),
-                                    contentScale = ContentScale.Crop,
-                                )
-                                Icon(
-                                    Icons.Filled.Close,
-                                    contentDescription = "Delete",
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .clickable {
-                                            articleToDelete = article
-                                            showDialog = true
-                                        }
-                                )
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 128.dp)
+            ) {
+                items(
+                    items = articles,
+                    itemContent = { article ->
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { viewModel.navigateToDetail(article) }
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .padding(top = 70.dp, start = 12.dp, end = 12.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop,
+                            )
 
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    val max_title_length =
-                                        19 // Define your maximum text length threshold
-                                    Text(
-                                        text = if (article.title.length <= max_title_length) {
-                                            article.title
-                                        } else {
-                                            "${article.title.take(max_title_length)}..."
-                                        },
-                                        style = TextStyle(
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold
-                                        ),
-                                        modifier = Modifier.padding(start = 13.dp, end = 10.dp),
-                                        maxLines = 1
-                                    )
-                                }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val max_title_length = 19 // Define your maximum text length threshold
                                 Text(
-                                    text = article.value.toString() + " €",
-                                    style = TextStyle(fontSize = 10.sp),
-                                    modifier = Modifier.padding(start = 14.dp)
+                                    text = if (article.title.length <= max_title_length) {
+                                        article.title
+                                    } else {
+                                        "${article.title.take(max_title_length)}..."
+                                    },
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    modifier = Modifier.padding(start = 13.dp, end = 10.dp),
+                                    maxLines = 1
                                 )
                             }
+                            Text(
+                                text = article.value.toString() + " €",
+                                style = TextStyle(fontSize = 10.sp),
+                                modifier = Modifier.padding(start = 14.dp)
+                            )
+                            Button(
+                                onClick = {
+                                    // Navigate to edit screen
+                                    viewModel.navigateToEditArticle(article)
+                                },
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(text = "Editar")
+                            }
+                            Button(
+                                onClick = {
+                                    articleToDelete = article
+                                    showDialog = true
+                                },
+                                modifier = Modifier
+                                    .padding(8.dp)
+                            ) {
+                                Text(text = "Eliminar")
+                            }
                         }
-                    )
-                }
+                    }
+                )
+            }
             if (showDialog) {
                 AlertDialog(
                     onDismissRequest = {
@@ -209,34 +186,69 @@ fun InventoryScene(viewModel: InventoryViewModel) {
             }
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF6200EE)) // Purple color
-                    .padding(5.dp)
+                    .width(390.dp)
+                    .height(30.dp) // Ajustar la altura del footer
+                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)) // Bordes redondeados en la parte superior
+                    .widthIn(min = 280.dp, max = 360.dp) // Ajustar el ancho del Row
+
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color(0xFF2F96D8).copy(alpha = 0.9f), Color(0xFF1A73E8).copy(alpha = 0.9f))
+                        )
+                    )
+                    .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) // Añadir sombra para dar efecto de elevación
+                    .padding(horizontal = 24.dp) // Padding horizontal
                     .align(Alignment.BottomCenter),
-                horizontalArrangement = Arrangement.Center, // Center horizontally
+                horizontalArrangement = Arrangement.SpaceEvenly, // Espaciar elementos equitativamente
                 verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    Modifier
-                        .size(30.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Green)
-                        .clickable { viewModel.navigateToAddArticle() }
-                ) {
+            ){
+                IconButton(onClick = { viewModel.home() }) {
+                    Icon(
+                        Icons.Filled.Home,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp) // Tamaño del ícono aumentado
+                    )
+                }
+                IconButton(onClick = { viewModel.navigateToChatList() }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Chat,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                IconButton(onClick = { viewModel.navigateToAddArticle() }) {
                     Icon(
                         Icons.Filled.AddBox,
                         contentDescription = null,
-                        // tint = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(50.dp)// Center icon within Box
+                        tint = Color.White,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                IconButton(onClick = { viewModel.navigateToInventory() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Person,
+                        contentDescription = "Profile",
+                        modifier = Modifier.size(20.dp),
+                        tint = Color.White
+                    )
+                }
+
+                IconButton(onClick = { viewModel.signOut() }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
         }
     }
 }
-@OptIn(ExperimentalAnimationApi::class)
+
 @Preview(showBackground = true)
 @Composable
 fun MainScenePreview() {
@@ -246,9 +258,4 @@ fun MainScenePreview() {
             sessionDataSource = SessionDataSource()
         )
     }
-}
-@Preview
-@Composable
-fun test(){
-
 }

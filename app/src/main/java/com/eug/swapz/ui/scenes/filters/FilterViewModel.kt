@@ -82,6 +82,9 @@ class FilterViewModel(
             navController.navigate(AppRoutes.INVENTORY.value)
         }
     }
-
-
+    fun navigateToChatList(){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.CHAT_LIST.value)
+        }
+    }
 }

@@ -50,4 +50,5 @@ interface ISessionDataSource {
      * Signs out the currently authenticated user using Firebase Authentication.
      */
     fun signOutUser()
+
 }

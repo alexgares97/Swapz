@@ -201,6 +201,21 @@ class ArticlesDataSource(private val database: FirebaseDatabase) : IMainDataSour
             // You can handle the error appropriately, e.g., show an error message to the user
         }
     }
+    suspend fun updateArticle(article: Article) {
+        return suspendCoroutine { continuation ->
+            val ref = database.getReference("articles").child(article.id!!)
+            ref.setValue(article)
+                .addOnSuccessListener {
+                    // Update successful
+                    continuation.resume(Unit)
+                }
+                .addOnFailureListener { exception ->
+                    // Update failed
+                    continuation.resumeWithException(exception)
+                }
+        }
+    }
+
     private fun getNextArticleKey(lastArticleKey: String?): String {
         var nextKey = "art01" // Default key if there are no existing articles
 

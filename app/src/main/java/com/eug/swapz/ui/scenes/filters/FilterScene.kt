@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -28,7 +29,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
@@ -36,6 +40,8 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
@@ -186,27 +192,62 @@ fun FilterScene(viewModel: FilterViewModel) {
             }
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF6200EE)) // Purple color
-                    .padding(5.dp)
+                    .width(390.dp)
+                    .height(30.dp) // Ajustar la altura del footer
+                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)) // Bordes redondeados en la parte superior
+                    .widthIn(min = 280.dp, max = 360.dp) // Ajustar el ancho del Row
+
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color(0xFF2F96D8).copy(alpha = 0.9f), Color(0xFF1A73E8).copy(alpha = 0.9f))
+                        )
+                    )
+                    .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) // Añadir sombra para dar efecto de elevación
+                    .padding(horizontal = 24.dp) // Padding horizontal
                     .align(Alignment.BottomCenter),
-                horizontalArrangement = Arrangement.Center, // Center horizontally
+                horizontalArrangement = Arrangement.SpaceEvenly, // Espaciar elementos equitativamente
                 verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    Modifier
-                        .size(30.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Green)
-                        .clickable { viewModel.navigateToAddArticle() }
-                ) {
+            ){
+                IconButton(onClick = { viewModel.home() }) {
+                    Icon(
+                        Icons.Filled.Home,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp) // Tamaño del ícono aumentado
+                    )
+                }
+                IconButton(onClick = { viewModel.navigateToChatList() }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Chat,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                IconButton(onClick = { viewModel.navigateToAddArticle() }) {
                     Icon(
                         Icons.Filled.AddBox,
                         contentDescription = null,
-                        // tint = Color.White,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(50.dp)// Center icon within Box
+                        tint = Color.White,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                IconButton(onClick = { viewModel.navigateToInventory() }) {
+                    Icon(
+                        imageVector = Icons.Filled.Person,
+                        contentDescription = "Profile",
+                        modifier = Modifier.size(20.dp),
+                        tint = Color.White
+                    )
+                }
+
+                IconButton(onClick = { viewModel.signOut() }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }

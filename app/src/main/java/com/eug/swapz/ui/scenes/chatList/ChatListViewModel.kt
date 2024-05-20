@@ -92,9 +92,6 @@ class ChatListViewModel(
         }
     }
 
-    fun goBack() {
-        navController.popBackStack()
-    }
 
     private fun navigateToExchange(userId: String, article: Article, chatId: String) {
         viewModelScope.launch {
@@ -110,6 +107,25 @@ class ChatListViewModel(
         }
     }
 
+    fun navigateToAddArticle(){
+        viewModelScope.launch {
+            Log.d("Navigating to Add Article", "")
+            navController.navigate(AppRoutes.ADD_ARTICLE.value)
+        }
+    }
+
+    fun navigateToInventory() {
+        viewModelScope.launch {
+            Log.d("Navigating to Add Article", "")
+            navController.navigate(AppRoutes.INVENTORY.value)
+        }
+    }
+    fun navigateToChatList(){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.CHAT_LIST.value)
+        }
+    }
+
     fun signOut() {
         viewModelScope.launch {
             sessionDataSource.signOutUser()
@@ -118,6 +134,11 @@ class ChatListViewModel(
                     inclusive = true
                 }
             }
+        }
+    }
+    fun home(){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.MAIN.value)
         }
     }
 }

@@ -17,6 +17,7 @@ import com.eug.swapz.ui.scenes.addarticle.AddArticleFactory
 import com.eug.swapz.ui.scenes.articleDetail.ArticleDetailFactory
 import com.eug.swapz.ui.scenes.chat.ChatFactory
 import com.eug.swapz.ui.scenes.chatList.ChatListFactory
+import com.eug.swapz.ui.scenes.editarticle.EditArticleFactory
 import com.eug.swapz.ui.scenes.intro.IntroFactory
 import com.eug.swapz.ui.scenes.inventory.InventoryFactory
 import com.eug.swapz.ui.scenes.login.LoginFactory
@@ -46,6 +47,7 @@ fun MyApp() {
     val filterFactory = FilterFactory(navController,sessionDataSource,articlesDataSource)
     val chatFactory = ChatFactory(navController, sessionDataSource, articlesDataSource)
     val chatListFactory = ChatListFactory(navController,sessionDataSource)
+    val editArticleFactory = EditArticleFactory(navController, sessionDataSource, articlesDataSource)
     val startDestination = if (sessionDataSource.isLoggedIn()) AppRoutes.MAIN.value else AppRoutes.INTRO.value
 
 
@@ -159,6 +161,17 @@ fun MyApp() {
                     chatFactory.createFromList(userId, chatId)
                 }
             }
+            composable(
+                route = "${AppRoutes.EDIT_ARTICLE.value}/{articleId}",
+                arguments = listOf(navArgument("articleId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val articleId = backStackEntry.arguments?.getString("articleId")
+                if (articleId != null) {
+                    editArticleFactory.create(articleId)
+                }
+            }
+
         }
     }
 }

@@ -74,7 +74,10 @@ class SessionDataSource : ISessionDataSource{
         return try {
             // Create a new user account with the specified email and password using the
             // Firebase Authentication SDK
+
             val result = auth.createUserWithEmailAndPassword(email, password).await()
+            result.user != null
+
             // Update the user's profile with the provided username
             result.user?.let { user ->
                 val profileUpdates = UserProfileChangeRequest.Builder()
@@ -84,7 +87,7 @@ class SessionDataSource : ISessionDataSource{
                 val userId = user.uid
                 val usersRef = FirebaseDatabase.getInstance().getReference("users")
                 if (userId != null) {
-                    val user = User(username, name, photo)
+                    val user = User(email,username, name, photo)
                     usersRef.child(userId).setValue(user).await()
                 }
             }
@@ -107,4 +110,5 @@ class SessionDataSource : ISessionDataSource{
         // Sign out the currently authenticated user using the Firebase Authentication SDK
         auth.signOut()
     }
+
 }

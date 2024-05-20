@@ -7,9 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.eug.swapz.ui.theme.SwapzTheme
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
@@ -28,14 +31,24 @@ fun IntroScene(viewModel: IntroViewModel) {
     }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color(0xFF173868), // RGBA(23, 56, 104, 255)
+                        Color(0xFF2E5C8C)
+                    ),
+
+                )
+            ),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(R.drawable.ic_launcher_background), // Ruta de la imagen en la carpeta res/drawable
+                painter = painterResource(R.drawable.logo2_sombra), // Ruta de la imagen en la carpeta res/drawable
                 contentDescription = "Logo",
                 modifier = Modifier
                     .size(400.dp) // Tamaño personalizado del logo

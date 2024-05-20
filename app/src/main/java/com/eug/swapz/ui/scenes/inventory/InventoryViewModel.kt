@@ -91,15 +91,7 @@ class InventoryViewModel(
             navController.navigate(AppRoutes.ADD_ARTICLE.value)
         }
     }
-    fun navigateToMain() {
-        viewModelScope.launch {
-            navController.navigate(AppRoutes.MAIN.value) {
-                popUpTo(AppRoutes.LOGIN.value) {
-                    inclusive = true
-                }
-            }
-        }
-    }
+
     fun deleteArticle(article: String?) {
         viewModelScope.launch {
             try {
@@ -116,4 +108,25 @@ class InventoryViewModel(
             }
         }
     }
+    fun navigateToEditArticle(article: Article) {
+        viewModelScope.launch {
+            Log.d("Navigating to Edit Article", "" + article.id)
+            navController.navigate(AppRoutes.EDIT_ARTICLE.value + "/" + article.id)
+        }
+    }
+
+    fun navigateToChatList(){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.CHAT_LIST.value)
+        }
+    }
+    fun navigateToInventory() {
+        viewModelScope.launch {
+            Log.d("Navigating to Add Article", "")
+            navController.navigate(AppRoutes.INVENTORY.value)
+        }
+    }
+
+
+
 }

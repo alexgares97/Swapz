@@ -2,6 +2,7 @@ package com.eug.swapz.ui.scenes.articleDetail
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,8 +26,9 @@ class ArticleDetailViewModel(
 ) : ViewModel() {
 
     private val sentMessage = MutableLiveData<String>()
-
-    private fun getCurrentUserId(): String? {
+    private val _otherUserName = MutableLiveData<String?>()
+    val otherUserName: LiveData<String?> = _otherUserName
+    fun getCurrentUserId(): String? {
         return sessionDataSource.getCurrentUserId()
     }
 
@@ -65,6 +67,12 @@ class ArticleDetailViewModel(
             popUpTo(AppRoutes.MAIN.value) {
                 inclusive = true
             }
+        }
+    }
+    fun navigateToInventory() {
+        viewModelScope.launch {
+            Log.d("Navigating to Add Article", "")
+            navController.navigate(AppRoutes.INVENTORY.value)
         }
     }
     fun startExchange(userId: String,article: Article) {
@@ -145,5 +153,23 @@ class ArticleDetailViewModel(
             }
         })
     }
+    fun fetchUserName(userId: String) {
+        val usersRef = FirebaseDatabase.getInstance().getReference("users").child(userId)
+        usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val name = snapshot.child("name").getValue(String::class.java)
+                if (name != null) {
+                    _otherUserName.postValue(name)
+                } else {
+                    Log.e("ArticleDetailViewModel", "User name is null")
+                }
+            }
 
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("ArticleDetailViewModel", "Database error", error.toException())
+            }
+        })
+    }
 }
+
+

@@ -40,20 +40,8 @@ class MainViewModel(
             }
         }
     }
-    fun home() {
-        navController.popBackStack()
-    }
 
-    fun signOut() {
-        viewModelScope.launch {
-            sessionDataSource.signOutUser()
-            navController.navigate(AppRoutes.LOGIN.value) {
-                popUpTo(AppRoutes.MAIN.value) {
-                    inclusive = true
-                }
-            }
-        }
-    }
+
 
 
     fun navigateToDetail(article: Article){
@@ -61,6 +49,9 @@ class MainViewModel(
             Log.d("Navigating to Article Detail", ""+article.id)
             navController.navigate(AppRoutes.ARTICLE_DETAIL.value+"/"+article.id)
         }
+    }
+    fun home() {
+        navController.popBackStack()
     }
     fun navigateToAddArticle(){
         viewModelScope.launch {
@@ -75,16 +66,28 @@ class MainViewModel(
             navController.navigate(AppRoutes.INVENTORY.value)
         }
     }
+    fun navigateToChatList(){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.CHAT_LIST.value)
+        }
+    }
+    fun signOut() {
+        viewModelScope.launch {
+            sessionDataSource.signOutUser()
+            navController.navigate(AppRoutes.LOGIN.value) {
+                popUpTo(AppRoutes.MAIN.value) {
+                    inclusive = true
+                }
+            }
+        }
+    }
+
     fun navigateToFilter(category: String){
         viewModelScope.launch {
             navController.navigate(AppRoutes.FILTER.value+"/"+category)
         }
 
     }
-    fun navigateToChatList(){
-        viewModelScope.launch {
-            navController.navigate(AppRoutes.CHAT_LIST.value)
-        }
-    }
+
 
 }
