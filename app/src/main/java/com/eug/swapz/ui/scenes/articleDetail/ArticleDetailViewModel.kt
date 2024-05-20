@@ -28,6 +28,8 @@ class ArticleDetailViewModel(
     private val sentMessage = MutableLiveData<String>()
     private val _otherUserName = MutableLiveData<String?>()
     val otherUserName: LiveData<String?> = _otherUserName
+    private val _otherUserPhoto = MutableLiveData<String?>()
+    val otherUserPhoto: LiveData<String?> = _otherUserPhoto
     fun getCurrentUserId(): String? {
         return sessionDataSource.getCurrentUserId()
     }
@@ -158,8 +160,11 @@ class ArticleDetailViewModel(
         usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val name = snapshot.child("name").getValue(String::class.java)
-                if (name != null) {
+                val photoUrl = snapshot.child("photo").getValue(String::class.java)
+
+                if (name != null && photoUrl != null) {
                     _otherUserName.postValue(name)
+                    _otherUserPhoto.postValue(photoUrl)
                 } else {
                     Log.e("ArticleDetailViewModel", "User name is null")
                 }

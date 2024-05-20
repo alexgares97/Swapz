@@ -63,6 +63,8 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
     var userId = article.user
     var showConfirmationDialog by remember { mutableStateOf(false) } // State for showing the dialog
     val otherUserName by viewModel.otherUserName.observeAsState("")
+    val otherUserPhoto by viewModel.otherUserPhoto.observeAsState("")
+
     // Conditionally show the top bar only if image is not clicked
     viewModel.fetchUserName(userId)
     if (!onClickImg) {
@@ -71,7 +73,14 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                 TopAppBar(
                     title = { Text(text = otherUserName?:"") },
                     actions = {
-
+                        Image(
+                            painter = rememberAsyncImagePainter(otherUserPhoto),
+                            contentDescription = "User Icon",
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(RoundedCornerShape(25.dp)),
+                            contentScale = ContentScale.Crop
+                        )
                            if(userId != viewModel.getCurrentUserId())
                                Button(
                                 onClick = { showConfirmationDialog = true },
