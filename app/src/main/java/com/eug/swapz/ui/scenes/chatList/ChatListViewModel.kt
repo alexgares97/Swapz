@@ -32,7 +32,12 @@ class ChatListViewModel(
 
     private val userId = sessionDataSource.getCurrentUserId()
 
-    suspend fun fetchChatList() {
+    init{
+        viewModelScope.launch {
+            fetchChatList()
+        }
+    }
+    private suspend fun fetchChatList() {
         userId?.let { userId ->
             val chatList = fetchChatListFromFirebase(userId)
             _chatList.postValue(chatList)
@@ -43,42 +48,57 @@ class ChatListViewModel(
     private suspend fun fetchChatListFromFirebase(userId: String): List<Chat> {
         return suspendCancellableCoroutine { continuation ->
             val databaseReference = FirebaseDatabase.getInstance().getReference("chats")
-            val chatQuery = databaseReference.orderByKey().startAt("$userId-").endAt("$userId-\uf8ff")
-            Log.d(TAG, "fetchChatListFromFirebase: $chatQuery")
+
 
             val chatList = mutableListOf<Chat>()
 
-            chatQuery.addListenerForSingleValueEvent(object : ValueEventListener {
+            databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     for (chatSnapshot in snapshot.children) {
                         val chatId = chatSnapshot.key ?: ""
-                        val lastMessageSnapshot = chatSnapshot.children.lastOrNull()
+                        Log.d(TAG, "onDataChange: $chatId")
+                        if (chatId.contains(userId)) {
+                            val lastMessageSnapshot = chatSnapshot.children.lastOrNull()
 
-                        lastMessageSnapshot?.let { messageSnapshot ->
-                            val text = messageSnapshot.child("text").getValue(String::class.java)
+                            lastMessageSnapshot?.let { messageSnapshot ->
+                                val text =
+                                    messageSnapshot.child("text").getValue(String::class.java)
 
-                            if (text != null) {
-                                val otherUserId = chatSnapshot.key?.split("-")?.find { it != userId }
-                                if (otherUserId != null) {
-                                    val usersReference = FirebaseDatabase.getInstance().getReference("users").child(otherUserId)
-                                    usersReference.addListenerForSingleValueEvent(object : ValueEventListener {
-                                        override fun onDataChange(userSnapshot: DataSnapshot) {
-                                            val name = userSnapshot.child("name").getValue(String::class.java)
-                                            val photoUrl = userSnapshot.child("photo").getValue(String::class.java)
-                                            if (name != null && photoUrl != null) {
-                                                val chat = Chat(chatId,otherUserId, name, text, photoUrl)
-                                                chatList.add(chat)
+                                if (text != null) {
+                                    val otherUserId =
+                                        chatSnapshot.key?.split("-")?.find { it != userId }
+                                    if (otherUserId != null) {
+                                        val usersReference =
+                                            FirebaseDatabase.getInstance().getReference("users")
+                                                .child(otherUserId)
+                                        usersReference.addListenerForSingleValueEvent(object :
+                                            ValueEventListener {
+                                            override fun onDataChange(userSnapshot: DataSnapshot) {
+                                                val name = userSnapshot.child("name")
+                                                    .getValue(String::class.java)
+                                                val photoUrl = userSnapshot.child("photo")
+                                                    .getValue(String::class.java)
+                                                if (name != null && photoUrl != null) {
+                                                    val chat = Chat(
+                                                        chatId,
+                                                        otherUserId,
+                                                        name,
+                                                        text,
+                                                        photoUrl
+                                                    )
+                                                    chatList.add(chat)
+                                                }
+                                                // Check if all chat messages are processed
+                                                if (chatList.size == snapshot.childrenCount.toInt()) {
+                                                    continuation.resume(chatList)
+                                                }
                                             }
-                                            // Check if all chat messages are processed
-                                            if (chatList.size == snapshot.childrenCount.toInt()) {
-                                                continuation.resume(chatList)
-                                            }
-                                        }
 
-                                        override fun onCancelled(error: DatabaseError) {
-                                            continuation.cancel(error.toException())
-                                        }
-                                    })
+                                            override fun onCancelled(error: DatabaseError) {
+                                                continuation.cancel(error.toException())
+                                            }
+                                        })
+                                    }
                                 }
                             }
                         }
@@ -106,7 +126,9 @@ class ChatListViewModel(
             navController.navigate("${AppRoutes.CHAT.value}/$otherUserId/$chatId")
         }
     }
-
+    fun home() {
+        navController.popBackStack()
+    }
     fun navigateToAddArticle(){
         viewModelScope.launch {
             Log.d("Navigating to Add Article", "")
@@ -136,7 +158,7 @@ class ChatListViewModel(
             }
         }
     }
-    fun home(){
+    fun navigateToMain(){
         viewModelScope.launch {
             navController.navigate(AppRoutes.MAIN.value)
         }

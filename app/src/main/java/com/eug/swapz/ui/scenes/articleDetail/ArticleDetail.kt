@@ -71,7 +71,6 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(text = otherUserName?:"") },
                     actions = {
                         Image(
                             painter = rememberAsyncImagePainter(otherUserPhoto),
@@ -81,8 +80,8 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                 .clip(RoundedCornerShape(25.dp)),
                             contentScale = ContentScale.Crop
                         )
-                           if(userId != viewModel.getCurrentUserId())
-                               Button(
+                        if(userId != viewModel.getCurrentUserId())
+                            Button(
                                 onClick = { showConfirmationDialog = true },
                                 modifier = Modifier.padding(horizontal = 55.dp)
                                     .align(Alignment.CenterVertically),
@@ -92,7 +91,9 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                 ) {
                                 Text(text = "Intercambiar", color = Color.White)
                             }
-                    }
+                    },
+                    title = { Text(text = otherUserName?:"") },
+
                 )
             }
 

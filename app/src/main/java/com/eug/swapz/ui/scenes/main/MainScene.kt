@@ -286,7 +286,7 @@ fun MainScene(viewModel: MainViewModel) {
                 horizontalArrangement = Arrangement.SpaceEvenly, // Espaciar elementos equitativamente
                 verticalAlignment = Alignment.CenterVertically
             ){
-                IconButton(onClick = { viewModel.home() }) {
+                IconButton(onClick = { viewModel.navigateToMain() }) {
                     Icon(
                         Icons.Filled.Home,
                         contentDescription = null,

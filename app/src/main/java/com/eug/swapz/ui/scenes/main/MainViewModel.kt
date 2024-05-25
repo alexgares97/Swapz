@@ -50,9 +50,7 @@ class MainViewModel(
             navController.navigate(AppRoutes.ARTICLE_DETAIL.value+"/"+article.id)
         }
     }
-    fun home() {
-        navController.popBackStack()
-    }
+
     fun navigateToAddArticle(){
         viewModelScope.launch {
             Log.d("Navigating to Add Article", "")
@@ -87,6 +85,11 @@ class MainViewModel(
             navController.navigate(AppRoutes.FILTER.value+"/"+category)
         }
 
+    }
+    fun navigateToMain(){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.MAIN.value)
+        }
     }
 
 

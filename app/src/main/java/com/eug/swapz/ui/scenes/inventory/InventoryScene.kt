@@ -8,7 +8,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
@@ -77,12 +80,16 @@ fun InventoryScene(viewModel: InventoryViewModel) {
             )
         }
 
-    ) {
-
-        Box(modifier = Modifier.fillMaxSize())
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize()
+            .padding(innerPadding)
+        )
         {
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 128.dp)
+                columns = GridCells.Adaptive(minSize = 128.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(16.dp)
             ) {
                 items(
                     items = articles,
@@ -90,61 +97,66 @@ fun InventoryScene(viewModel: InventoryViewModel) {
                         Column(
                             Modifier
                                 .fillMaxWidth()
+                                .background(Color.White)
+                                .shadow(4.dp, RoundedCornerShape(8.dp))
+                                .padding(8.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable { viewModel.navigateToDetail(article) }
+                                .padding(8.dp) // Added padding for the card
                         ) {
                             Image(
                                 painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .size(200.dp)
-                                    .padding(top = 70.dp, start = 12.dp, end = 12.dp)
+                                    .height(120.dp)
+                                    .fillMaxWidth()
+                                    .align(Alignment.CenterHorizontally)
                                     .clip(RoundedCornerShape(8.dp)),
                                 contentScale = ContentScale.Crop,
                             )
 
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val max_title_length = 19 // Define your maximum text length threshold
-                                Text(
-                                    text = if (article.title.length <= max_title_length) {
-                                        article.title
-                                    } else {
-                                        "${article.title.take(max_title_length)}..."
-                                    },
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    modifier = Modifier.padding(start = 13.dp, end = 10.dp),
-                                    maxLines = 1
-                                )
-                            }
+
+                            val max_title_length = 19 // Define your maximum text length threshold
                             Text(
-                                text = article.value.toString() + " €",
-                                style = TextStyle(fontSize = 10.sp),
-                                modifier = Modifier.padding(start = 14.dp)
+                                text = if (article.title.length <= max_title_length) {
+                                    article.title
+                                } else {
+                                    "${article.title.take(max_title_length)}..."
+                                },
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                modifier = Modifier.padding(start = 13.dp, end = 10.dp),
+                                maxLines = 1
                             )
-                            Button(
-                                onClick = {
-                                    // Navigate to edit screen
-                                    viewModel.navigateToEditArticle(article)
-                                },
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(text = "Editar")
-                            }
-                            Button(
-                                onClick = {
-                                    articleToDelete = article
-                                    showDialog = true
-                                },
-                                modifier = Modifier
-                                    .padding(8.dp)
-                            ) {
-                                Text(text = "Eliminar")
+                                Button(
+                                    onClick = { viewModel.navigateToEditArticle(article) },
+                                    modifier = Modifier
+                                        .padding(horizontal = 4.dp, vertical = 4.dp)
+                                        .weight(1f),
+                                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2F96D8)),
+                                    contentPadding = PaddingValues(vertical = 4.dp, horizontal = 8.dp) // Adjust padding for smaller button
+                                ) {
+                                    Text(text = "Editar", color = Color.White, fontSize = 10.sp) // Smaller text
+                                }
+                                Button(
+                                    onClick = {
+                                        articleToDelete = article
+                                        showDialog = true
+                                    },
+                                    modifier = Modifier
+                                        .padding(horizontal = 4.dp, vertical = 4.dp)
+                                        .weight(1f),
+                                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2F96D8)),
+                                    contentPadding = PaddingValues(vertical = 4.dp, horizontal = 8.dp) // Adjust padding for smaller button
+                                ) {
+                                    Text(text = "Eliminar", color = Color.White, fontSize = 10.sp) // Smaller text
+                                }
                             }
                         }
                     }
@@ -202,7 +214,7 @@ fun InventoryScene(viewModel: InventoryViewModel) {
                 horizontalArrangement = Arrangement.SpaceEvenly, // Espaciar elementos equitativamente
                 verticalAlignment = Alignment.CenterVertically
             ){
-                IconButton(onClick = { viewModel.home() }) {
+                IconButton(onClick = { viewModel.navigateToMain() }) {
                     Icon(
                         Icons.Filled.Home,
                         contentDescription = null,

@@ -81,7 +81,7 @@ class SessionDataSource : ISessionDataSource{
             // Update the user's profile with the provided username
             result.user?.let { user ->
                 val profileUpdates = UserProfileChangeRequest.Builder()
-                    .setDisplayName(username)
+                    .setDisplayName(name)
                     .build()
                 user.updateProfile(profileUpdates).await()
                 val userId = user.uid

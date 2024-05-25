@@ -126,6 +126,11 @@ class InventoryViewModel(
             navController.navigate(AppRoutes.INVENTORY.value)
         }
     }
+    fun navigateToMain(){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.MAIN.value)
+        }
+    }
 
 
 
