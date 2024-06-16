@@ -1,0 +1,104 @@
+@startuml
+
+package "com.eug.swapz" {
+
+    package datasources {
+        interface IMainDataSource
+        interface ISessionDataSource
+        class ArticlesDataSource {
+            + getArticleList(): List<Article>
+            + add(article: Article): void
+            + edit(article:Article): void
+            + delete(article:Article): void
+            + exchange(article:Article, (user: User): void
+        }
+        class SessionDataSource {
+            + login(user: User): void
+            + signUp(user: User): void
+            + signOut(): void
+        }
+        ArticlesDataSource -|> IMainDataSource
+        SessionDataSource -|> ISessionDataSource
+    }
+
+    package helpers {
+        interface ComposableFactory<in Any> {
+            + @Composable create(id: String?): kotlin.Any
+        }
+    }
+
+
+    package models {
+        class Article {
+            + title: String
+            + content: String
+        }
+        class Chat {
+            + chatId: String
+            + messages: List<ChatMessage>
+        }
+        class ChatMessage {
+            + sender: User
+            + message: String
+        }
+        class User {
+            + userId: String
+            + username: String
+        }
+    }
+
+
+    package ui.scenes {
+        package scene {
+            class ScenesView {
+                - viewModel: ScenesViewModel
+                + display(): void
+            }
+            class ScenesViewModel {
+                - sessionDataSource: SessionDataSource
+                - articlesDataSource: ArticlesDataSource
+            }
+            class FactoryScene {
+                + create(): ScenesViewModel
+            }
+
+            ScenesView --> ScenesViewModel
+            ScenesViewModel --> SessionDataSource
+            ScenesViewModel --> ArticlesDataSource
+            FactoryScene --> ScenesViewModel
+        }
+    }
+
+    package general {
+        class AppRoutes {
+            + navigateTo(route: String): void
+        }
+
+        class MainActivity {
+            +  FirebaseApp.init: void
+            - appRoutes: AppRoutes
+        }
+        class MyApp {
+            + startApp(): void
+        }
+        MainActivity --> AppRoutes
+        MyApp --> MainActivity
+    }
+
+
+
+    ' Adding relationships from data sources to models
+    ArticlesDataSource --> Article
+    ArticlesDataSource --> Chat
+    ArticlesDataSource --> ChatMessage
+    SessionDataSource --> Article
+    SessionDataSource --> Chat
+    SessionDataSource --> ChatMessage
+    SessionDataSource --> User
+
+
+    ' Indicating that ComposableFactory can create ScenesView or other components
+    ComposableFactory <|.. ScenesView : creates
+}
+
+@enduml

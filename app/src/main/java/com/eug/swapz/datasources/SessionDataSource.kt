@@ -86,10 +86,8 @@ class SessionDataSource : ISessionDataSource{
                 user.updateProfile(profileUpdates).await()
                 val userId = user.uid
                 val usersRef = FirebaseDatabase.getInstance().getReference("users")
-                if (userId != null) {
-                    val user = User(email,username, name, photo)
-                    usersRef.child(userId).setValue(user).await()
-                }
+                val newUser = User(email,username, name, photo)
+                usersRef.child(userId).setValue(newUser).await()
             }
 
             // Save user data to Firebase Realtime Database
