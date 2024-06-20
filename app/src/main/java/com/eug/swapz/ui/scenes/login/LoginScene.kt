@@ -40,10 +40,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScene(viewModel: LoginViewModel) {
+fun LoginScene(viewModel: LoginViewModel, email: String, password: String) {
     val context = LocalContext.current
-    val emailState = remember { mutableStateOf(TextFieldValue("pepeluis@gmail.com")) }
-    val passwordState = remember { mutableStateOf(TextFieldValue("admin123")) }
+    val emailState = remember { mutableStateOf(TextFieldValue(email)) }
+    val passwordState = remember { mutableStateOf(TextFieldValue(password)) }
 
     fun validateInputs(callback: (email: String, password: String) -> Unit) {
         val email = emailState.value.text
@@ -184,7 +184,7 @@ fun LoginScene(viewModel: LoginViewModel) {
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F96D8)),
                         modifier = Modifier
                             .weight(1f)
-                            .padding(horizontal = 4.dp), // Adjust padding between buttons
+                            .padding(horizontal = 15.dp), // Adjust padding between buttons
                         shape = RoundedCornerShape(50) // More rounded corners
                     ) {
                         Text(text = "Login", color = Color.White)
@@ -198,7 +198,7 @@ fun LoginScene(viewModel: LoginViewModel) {
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F96D8)),
                         modifier = Modifier
                             .weight(1f)
-                            .padding(horizontal = 4.dp), // Adjust padding between buttons
+                            .padding(horizontal = 15.dp), // Adjust padding between buttons
                         shape = RoundedCornerShape(50) // More rounded corners
                     ) {
                         Text(text = "Register", color = Color.White)

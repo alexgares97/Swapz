@@ -117,6 +117,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage-ktx:20.0.0'
     //implementation 'com.google.firebase:firebase-messaging-ktx:23.0.2'
 
+
     //Camerax
 
     apply plugin: 'com.google.gms.google-services'

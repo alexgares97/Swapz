@@ -13,6 +13,11 @@ class LoginFactory(
     @Composable
     override fun create(id: String?): Any {
         val viewModel = LoginViewModel(navController, sessionDataSource)
-        return LoginScene(viewModel = viewModel)
+        return LoginScene(viewModel = viewModel, email = "", password = "")
+    }
+   @Composable
+    fun CreateDefaults(email: String?, password: String?) {
+        val viewModel = LoginViewModel(navController, sessionDataSource)
+        LoginScene(viewModel = viewModel, email = email ?: "", password = password ?: "")
     }
 }

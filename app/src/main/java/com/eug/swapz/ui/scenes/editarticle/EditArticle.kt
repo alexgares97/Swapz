@@ -244,7 +244,9 @@ fun EditArticle(viewModel: EditArticleViewModel, articleId: String) {
                     disabledTextColor = Color.White // Ensure the text color is white even when disabled
                 ),
                 enabled = false,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(0.5.dp, Color.Gray, RoundedCornerShape(8.dp))
             )
             DropdownMenu(
                 expanded = expandedStatus,
@@ -281,6 +283,8 @@ fun EditArticle(viewModel: EditArticleViewModel, articleId: String) {
                 ),
                 enabled = false,
                 modifier = Modifier.fillMaxWidth()
+                    .border(0.5.dp, Color.Gray, RoundedCornerShape(8.dp))
+
             )
             DropdownMenu(
                 expanded = expandedCat,
@@ -319,53 +323,69 @@ fun EditArticle(viewModel: EditArticleViewModel, articleId: String) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Button(
-                onClick = {
-                    if (title.isEmpty() ||
-                        desc.isEmpty() ||
-                        status.isEmpty() ||
-                        cat.isEmpty() ||
-                        value.isEmpty() ||
-                        carrusel.isEmpty()
-                    ) {
-                        Toast.makeText(
-                            context,
-                            "Rellena todos los campos.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        viewModel.updateArticle(
-                            articleId = articleId,
-                            title = title,
-                            desc = desc,
-                            status = status,
-                            cat = cat,
-                            value = value.toIntOrNull() ?: 0,
-                            carrusel = carrusel,
-                            img = carrusel.firstOrNull() ?: "",
-                            user = article?.user ?: ""
-                        )
-                        viewModel.navigateToMain()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F96D8)),
-                shape = RoundedCornerShape(50),
+            Box(
                 modifier = Modifier
-                    .weight(0.5f)
-                    .padding(horizontal = 20.dp)
-            ) {
-                Text("Guardar", color = Color.White)
-            }
+                    .weight(0.3f)
+                    .padding(24.dp)
+                    .height(48.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Color(0xFF3A8EF8), Color(0xFF0059D6))
+                        ),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    .clickable {
+                        if (title.isEmpty() ||
+                            desc.isEmpty() ||
+                            status.isEmpty() ||
+                            cat.isEmpty() ||
+                            value.isEmpty() ||
+                            carrusel.isEmpty()
+                        ) {
+                            Toast.makeText(
+                                context,
+                                "Rellena todos los campos.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            viewModel.updateArticle(
+                                articleId = articleId,
+                                title = title,
+                                desc = desc,
+                                status = status,
+                                cat = cat,
+                                value = value.toIntOrNull() ?: 0,
+                                carrusel = carrusel,
+                                img = carrusel.firstOrNull() ?: "",
+                                user = article?.user ?: ""
+                            )
+                            viewModel.navigateToMain()
+                        }
+                    },
+                contentAlignment = Alignment.Center
 
-            Button(
-                onClick = { viewModel.navigateToMain() },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F96D8)),
-                shape = RoundedCornerShape(50),
-                modifier = Modifier
-                    .weight(0.5f)
-                    .padding(horizontal = 20.dp)
             ) {
-                Text("Cancelar", color = Color.White)
+                Text("Guardar", color = Color.White, fontWeight = FontWeight.Bold)
+            }
+            Box(
+                modifier = Modifier
+                    .weight(0.3f)
+                    .padding(24.dp)
+                    .height(48.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Color(0xFF3A8EF8), Color(0xFF0059D6))
+                        ),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    .clickable {
+                        viewModel.navigateToMain()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Cancelar", color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }

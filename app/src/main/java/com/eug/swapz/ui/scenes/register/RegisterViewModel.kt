@@ -56,7 +56,9 @@ class RegisterViewModel (
     fun isLoggedIn() {
         _loggedIn.value = sessionDataSource.isLoggedIn()
     }
-
+    fun back() {
+        navController.popBackStack()
+    }
     fun signUp(
         email: String,
         password: String,
@@ -72,11 +74,22 @@ class RegisterViewModel (
                 isLoading.value = false
                 errorMessage.value = "Email already in use"
             } else {
-                navigateToLogin()
+                navigateToLogin(email,password)
             }
         }
     }
 
+    private fun navigateToLogin(email: String, password: String) {
+        viewModelScope.launch {
+            val encodedEmail = java.net.URLEncoder.encode(email, "UTF-8")
+            val encodedPassword = java.net.URLEncoder.encode(password, "UTF-8")
+            navController.navigate("${AppRoutes.LOGIN.value}/$encodedEmail/$encodedPassword") {
+                popUpTo(AppRoutes.REGISTER.value) {
+                    inclusive = true
+                }
+            }
+        }
+    }
     fun navigateToLogin() {
         viewModelScope.launch {
             navController.navigate(AppRoutes.LOGIN.value) {
@@ -86,6 +99,7 @@ class RegisterViewModel (
             }
         }
     }
+
     private fun getCurrentUserId(): String? {
         return sessionDataSource.getCurrentUserId()
     }

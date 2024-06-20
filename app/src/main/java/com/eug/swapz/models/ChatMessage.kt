@@ -6,8 +6,9 @@ data class ChatMessage(
     var imageUrl: String? = "",
     var title: String? ="",
     var timestamp: Long = 0,
-    var isSentByUser: Boolean = false
+    var isSentByUser: Boolean = false,
+    var articleId: String? = ""
 ) {
     // No-argument constructor
-    constructor() : this("", "", "","",0, false)
+    constructor() : this("", "", "","",0, false, "")
 }

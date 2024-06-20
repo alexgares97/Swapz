@@ -24,40 +24,41 @@ class MainViewModel(
 ) : ViewModel() {
     private val _articles = MutableLiveData<List<Article>>()
     val articles: LiveData<List<Article>> = _articles
+    private val currentUserId = sessionDataSource.getCurrentUserId()
 
     fun fetch(){
         viewModelScope.launch {
-            val articleList = articlesDataSource.fetch()
-            _articles.value = articleList
-            subscribe()
-        }
-    }
+            val allArticles = articlesDataSource.fetch()
 
-    fun subscribe(){
-        viewModelScope.launch {
-            articlesDataSource.subscribe {
-                _articles.value = it
+            val articleList = allArticles.filter { it.user != currentUserId }
+
+            _articles.value = articleList
+            if (currentUserId != null) {
+                subscribe(currentUserId)
             }
         }
     }
 
-
-
-
+    private fun subscribe(currentUserId: String) {
+        viewModelScope.launch {
+            articlesDataSource.subscribe { articles ->
+                // Filter articles on update as well
+                _articles.value = articles.filter { it.user != currentUserId }
+            }
+        }
+    }
     fun navigateToDetail(article: Article){
         viewModelScope.launch {
             Log.d("Navigating to Article Detail", ""+article.id)
             navController.navigate(AppRoutes.ARTICLE_DETAIL.value+"/"+article.id)
         }
     }
-
     fun navigateToAddArticle(){
         viewModelScope.launch {
             Log.d("Navigating to Add Article", "")
             navController.navigate(AppRoutes.ADD_ARTICLE.value)
         }
     }
-
     fun navigateToInventory() {
         viewModelScope.launch {
             Log.d("Navigating to Add Article", "")
@@ -91,6 +92,4 @@ class MainViewModel(
             navController.navigate(AppRoutes.MAIN.value)
         }
     }
-
-
 }

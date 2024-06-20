@@ -25,15 +25,20 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -45,12 +50,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
@@ -62,34 +71,38 @@ import com.eug.swapz.ui.scenes.filters.FilterViewModel
 import com.eug.swapz.ui.scenes.login.LoginFactory
 import com.eug.swapz.ui.theme.SwapzTheme
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScene(viewModel: MainViewModel) {
     val articles by viewModel.articles.observeAsState(emptyList())
     var filteredArticles by remember { mutableStateOf(emptyList<Article>()) }
-    var searchText by remember { mutableStateOf(String()) }
+    var searchText by remember { mutableStateOf(TextFieldValue()) }
     val articlesByCategory = articles.groupBy { it.cat }
+    var isSearchPerformed by remember { mutableStateOf(false) } // Track search status
     viewModel.fetch()
-    DisposableEffect(searchText) {
-        val onSearchResults: (List<Article>) -> Unit = { searchResults ->
-            filteredArticles = searchResults
-        }
-        performSearch(articles, searchText, onSearchResults)
-        onDispose {
-            // Cleanup logic if needed
-        }
-    }
+
     Scaffold(
         topBar = {
-            CustomTopAppBar(viewModel, searchText) { newText ->
-                searchText = newText // Update searchText
-            }
+            CustomTopAppBar(
+                isSearchPerformed = isSearchPerformed, // Pass the search status
+                viewModel = viewModel, // Pass viewModel to CustomTopAppBar
+                searchText = searchText,
+                onSearchTextChanged = { newText ->
+                    searchText = newText
+                },
+                onSearchPerformed = {
+                    performSearch(articles, searchText.text) { searchResults ->
+                        filteredArticles = searchResults
+                        isSearchPerformed = true // Set to true when search is performed
+                    }
+                }
+            )
         }
     ) {
         Spacer(modifier = Modifier.height(20.dp))
         Box(modifier = Modifier.fillMaxSize()) {
-            if (filteredArticles.isEmpty()) {
+            if (filteredArticles.isEmpty() && !isSearchPerformed) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -106,9 +119,9 @@ fun MainScene(viewModel: MainViewModel) {
                                     viewModel.navigateToFilter(
                                         category ?: ""
                                     )
-                                } // Navigate on click
+                                }
                                 .wrapContentWidth()
-                                .padding(horizontal = 4.dp), // Add some padding to each box
+                                .padding(horizontal = 4.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(
@@ -119,10 +132,9 @@ fun MainScene(viewModel: MainViewModel) {
                                     contentDescription = null,
                                     modifier = Modifier.size(24.dp)
                                 )
-                                Spacer(modifier = Modifier.height(4.dp)) // Add padding between image and text
+                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = category
-                                        ?: "Unknown", // Display "Unknown" if category is null
+                                    text = category ?: "Unknown",
                                     style = TextStyle(fontSize = 12.sp),
                                     textAlign = TextAlign.Center
                                 )
@@ -136,7 +148,6 @@ fun MainScene(viewModel: MainViewModel) {
                         .padding(top = 130.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
-
                     articlesByCategory.forEach { (category, categoryArticles) ->
                         item {
                             Text(
@@ -214,9 +225,6 @@ fun MainScene(viewModel: MainViewModel) {
                     }
                 }
             } else {
-                val articlesByCategory = articles.groupBy { it.cat }
-
-                // Display search results if there are any
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 128.dp)
                 ) {
@@ -242,8 +250,7 @@ fun MainScene(viewModel: MainViewModel) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    val max_title_length =
-                                        19 // Define your maximum text length threshold
+                                    val max_title_length = 19
                                     Text(
                                         text = if (article.title.length <= max_title_length) {
                                             article.title
@@ -270,69 +277,78 @@ fun MainScene(viewModel: MainViewModel) {
             }
             Row(
                 modifier = Modifier
-                    .width(390.dp)
-                    .height(30.dp) // Ajustar la altura del footer
-                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)) // Bordes redondeados en la parte superior
-                    .widthIn(min = 280.dp, max = 360.dp) // Ajustar el ancho del Row
-
+                    .fillMaxWidth()
+                    .height(45.dp)
+                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(Color(0xFF2F96D8).copy(alpha = 0.9f), Color(0xFF1A73E8).copy(alpha = 0.9f))
                         )
                     )
-                    .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) // Añadir sombra para dar efecto de elevación
-                    .padding(horizontal = 24.dp) // Padding horizontal
+                    .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .align(Alignment.BottomCenter),
-                horizontalArrangement = Arrangement.SpaceEvenly, // Espaciar elementos equitativamente
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
-            ){
-                IconButton(onClick = { viewModel.navigateToMain() }) {
-                    Icon(
-                        Icons.Filled.Home,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp) // Tamaño del ícono aumentado
-                    )
-                }
-                IconButton(onClick = { viewModel.navigateToChatList() }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Chat,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                IconButton(onClick = { viewModel.navigateToAddArticle() }) {
-                    Icon(
-                        Icons.Filled.AddBox,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-
-                IconButton(onClick = { viewModel.navigateToInventory() }) {
-                    Icon(
-                        imageVector = Icons.Filled.Person,
-                        contentDescription = "Profile",
-                        modifier = Modifier.size(20.dp),
-                        tint = Color.White
-                    )
-                }
-
-                IconButton(onClick = { viewModel.signOut() }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ExitToApp,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+            ) {
+                NavigationItem(
+                    icon = Icons.Filled.Home,
+                    label = "Inicio",
+                    onClick = { viewModel.navigateToMain() },
+                    iconSize = 24.dp
+                )
+                NavigationItem(
+                    icon = Icons.AutoMirrored.Filled.Chat,
+                    label = "Chats",
+                    onClick = { viewModel.navigateToChatList() },
+                    iconSize = 24.dp
+                )
+                NavigationItem(
+                    icon = Icons.Filled.AddBox,
+                    label = "Subir",
+                    onClick = { viewModel.navigateToAddArticle() },
+                    iconSize = 29.dp
+                )
+                NavigationItem(
+                    icon = Icons.Filled.Person,
+                    label = "Inventario",
+                    onClick = { viewModel.navigateToInventory() },
+                    iconSize = 24.dp
+                )
+                NavigationItem(
+                    icon = Icons.AutoMirrored.Filled.ExitToApp,
+                    label = "Salir",
+                    onClick = { viewModel.signOut() },
+                    iconSize = 24.dp
+                )
             }
         }
     }
 }
-
+@Composable
+fun NavigationItem(icon: ImageVector, label: String, onClick: () -> Unit, iconSize: Dp) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(vertical = 0.dp)
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(iconSize)
+        )
+        Spacer(modifier = Modifier.height(0.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.caption.copy(
+                fontSize = 10.sp,
+                color = Color.White
+            )
+        )
+    }
+}
 private fun performSearch(
     articles: List<Article>,
     query: String,
@@ -343,22 +359,22 @@ private fun performSearch(
     }
     onSearchResults(searchResults)
 }
-
 fun getIconResourceIdForCategory(categoryName: String): Int {
     return when (categoryName) {
         "Hogar" -> R.drawable.hogar
         "Deportes" -> R.drawable.atletismo
         "Moda" -> R.drawable.camisa
         "Otros" -> R.drawable.otros
-        else -> R.drawable.otros // Provide a default icon if category doesn't match
+        else -> R.drawable.otros
     }
 }
-
 @Composable
 fun CustomTopAppBar(
+    isSearchPerformed: Boolean, // Parameter to determine if the search has been performed
     viewModel: MainViewModel,
-    searchText: String,
-    onSearchTextChanged: (String) -> Unit
+    searchText: TextFieldValue,
+    onSearchTextChanged: (TextFieldValue) -> Unit,
+    onSearchPerformed: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -366,16 +382,28 @@ fun CustomTopAppBar(
             .padding(horizontal = 40.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Search Box with Spacer
+        if (isSearchPerformed) { // Conditionally show the back arrow
+            IconButton(
+                onClick = { viewModel.navigateToMain() }, // Navigate back on click
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.Black // Adjust color as needed
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+        }
         Box(
             modifier = Modifier
                 .weight(30F)
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color(0xFFE0E0E0))
-                .clickable { /* Handle click event */ }
+                .clickable { /* Make the TextField editable on click */ }
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     Icons.Default.Search,
@@ -385,15 +413,24 @@ fun CustomTopAppBar(
                 Spacer(modifier = Modifier.width(1.dp))
                 BasicTextField(
                     value = searchText,
-                    onValueChange = { onSearchTextChanged(it) },
+                    onValueChange = onSearchTextChanged,
                     textStyle = TextStyle(fontSize = 16.sp),
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            onSearchPerformed() // Perform search on Enter key press
+                        }
+                    )
                 )
             }
         }
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun MainScenePreview() {

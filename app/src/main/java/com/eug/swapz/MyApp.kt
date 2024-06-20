@@ -24,6 +24,7 @@ import com.eug.swapz.ui.scenes.login.LoginFactory
 import com.eug.swapz.ui.scenes.main.MainSceneFactory
 import com.eug.swapz.ui.scenes.register.RegisterFactory
 import com.eug.swapz.ui.scenes.filters.FilterFactory
+import com.eug.swapz.ui.scenes.profile.ProfileFactory
 import com.eug.swapz.ui.theme.SwapzTheme
 import com.google.firebase.database.FirebaseDatabase
 
@@ -48,6 +49,7 @@ fun MyApp() {
     val chatFactory = ChatFactory(navController, sessionDataSource, articlesDataSource)
     val chatListFactory = ChatListFactory(navController,sessionDataSource)
     val editArticleFactory = EditArticleFactory(navController, sessionDataSource, articlesDataSource)
+    val profileFactory = ProfileFactory(navController, sessionDataSource, articlesDataSource)
     val startDestination = if (sessionDataSource.isLoggedIn()) AppRoutes.MAIN.value else AppRoutes.INTRO.value
 
 
@@ -69,6 +71,22 @@ fun MyApp() {
                 AppRoutes.LOGIN.value
             ) {
                 loginFactory.create(null)
+            }
+            composable(
+                route = AppRoutes.LOGIN.value + "/{email}/{password}",
+                arguments = listOf(
+                    navArgument("email") { type = NavType.StringType },
+                    navArgument("password") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val encodedEmail = backStackEntry.arguments?.getString("email") ?: ""
+                val encodedPassword = backStackEntry.arguments?.getString("password") ?: ""
+
+                // Decode the parameters
+                val email = java.net.URLDecoder.decode(encodedEmail, "UTF-8")
+                val password = java.net.URLDecoder.decode(encodedPassword, "UTF-8")
+
+                loginFactory.CreateDefaults( email = email, password = password)
             }
 
             composable(
@@ -139,7 +157,7 @@ fun MyApp() {
 
                 // Ensure userId and articleId are not null before proceeding
                 if (userId != null && articleId != null && chatId != null) {
-                    chatFactory.createWithArticleId(userId, articleId, chatId)
+                    chatFactory.CreateWithArticleId(userId, articleId, chatId)
                 }
             }
             composable(
@@ -158,7 +176,7 @@ fun MyApp() {
                 val userId = backStackEntry.arguments?.getString("userId")
                 val chatId = backStackEntry.arguments?.getString("chatId")
                 if (userId != null && chatId != null) {
-                    chatFactory.createFromList(userId, chatId)
+                    chatFactory.CreateFromList(userId, chatId)
                 }
             }
             composable(
@@ -169,6 +187,15 @@ fun MyApp() {
                 val articleId = backStackEntry.arguments?.getString("articleId")
                 if (articleId != null) {
                     editArticleFactory.create(articleId)
+                }
+            }
+            composable(
+                route = "${AppRoutes.PROFILE.value}/{userId}",
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId")
+                if (userId != null) {
+                    profileFactory.CreateWithUser(userId)
                 }
             }
 

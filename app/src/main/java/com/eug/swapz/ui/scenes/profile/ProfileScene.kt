@@ -1,5 +1,13 @@
-package com.eug.swapz.ui.scenes.inventory
+package com.eug.swapz.ui.scenes.profile
 
+import androidx.compose.material.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalContext
 import android.annotation.SuppressLint
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
@@ -21,10 +29,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
@@ -46,10 +56,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,19 +69,18 @@ import com.eug.swapz.ui.theme.SwapzTheme
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.eug.swapz.models.Article
-import com.eug.swapz.R
 
-
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InventoryScene(viewModel: InventoryViewModel) {
+fun ProfileScene(viewModel: ProfileViewModel){
     val articles by viewModel.articles.observeAsState(emptyList())
-    val username by viewModel.username.collectAsState()
-    val category by viewModel.category.collectAsState()
+    val name by viewModel.otherUserName.observeAsState("")
+    val userId = viewModel.node
+    val photo by viewModel.otherUserPhoto.observeAsState("")
+    var articleToExchange by remember { mutableStateOf<Article?>(null) }
     var showDialog by remember { mutableStateOf(false) }
-
-    var articleToDelete by remember { mutableStateOf<Article?>(null) }
+    var showCancelDialog by remember { mutableStateOf(false) }
+    val exchangeStatusMap by viewModel.exchangeStatusMap.observeAsState(mapOf())
 
     LaunchedEffect(Unit) {
         viewModel.fetch()
@@ -79,31 +88,52 @@ fun InventoryScene(viewModel: InventoryViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = username ?: "Inventory", color = Color.White) }, // Use the retrieved username as the title }, // Accessing viewModel.username correctly
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(photo),
+                            contentDescription = "User Icon",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = name ?: "",
+                            style = MaterialTheme.typography.h6.copy(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                },
                 backgroundColor = Color(0xFF86C5E4)
             )
         }
-
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()
             .padding(innerPadding)
         )
         {
-            if (articles.isEmpty()) {
-                EmptyInventoryView(viewModel)
-            }
-                LazyVerticalGrid(
+            LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 150.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clip(RoundedCornerShape(8.dp))
-
+                modifier = Modifier.padding(16.dp)
             ) {
-                items(
-                    items = articles,
-                    itemContent = { article ->
+                items(articles) { article ->
+                    val hasStartedExchange = exchangeStatusMap[article.id] ?: false
+
+                    LaunchedEffect(article.id) {
+                        viewModel.checkIfExchangeStarted(userId, article.id ?: "")
+                    }
                         Column(
                             Modifier
                                 .fillMaxWidth()
@@ -115,7 +145,7 @@ fun InventoryScene(viewModel: InventoryViewModel) {
                                 .padding(8.dp) // Added padding for the card
                         ) {
                             Image(
-                                painter = rememberAsyncImagePainter(article.carrusel[0]),
+                                painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .height(120.dp)
@@ -124,11 +154,8 @@ fun InventoryScene(viewModel: InventoryViewModel) {
                                     .clip(RoundedCornerShape(8.dp)),
                                 contentScale = ContentScale.Crop,
                             )
-
-
-                            val max_title_length = 25
-                            val max_desc_length = 55
-
+                            val max_title_length = 19
+                            val max_desc_length = 55// Define your maximum text length threshold
                             Text(
                                 text = if (article.title.length <= max_title_length) {
                                     article.title
@@ -168,67 +195,111 @@ fun InventoryScene(viewModel: InventoryViewModel) {
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Button(
-                                    onClick = { viewModel.navigateToEditArticle(article) },
-                                    modifier = Modifier
-                                        .padding(horizontal = 4.dp, vertical = 4.dp)
-                                        .weight(1f),
-                                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2F96D8)),
-                                    contentPadding = PaddingValues(vertical = 4.dp, horizontal = 8.dp) // Adjust padding for smaller button
-                                ) {
-                                    Text(text = "Editar", color = Color.White, fontSize = 10.sp) // Smaller text
-                                }
-                                Button(
-                                    onClick = {
-                                        articleToDelete = article
-                                        showDialog = true
-                                    },
-                                    modifier = Modifier
-                                        .padding(horizontal = 4.dp, vertical = 4.dp)
-                                        .weight(1f),
-                                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2F96D8)),
-                                    contentPadding = PaddingValues(vertical = 4.dp, horizontal = 8.dp) // Adjust padding for smaller button
-                                ) {
-                                    Text(text = "Eliminar", color = Color.White, fontSize = 10.sp) // Smaller text
+                                if (hasStartedExchange) {
+                                    Button(
+                                        onClick = {
+                                            articleToExchange = article
+                                            showCancelDialog = true
+                                        },
+                                        modifier = Modifier
+                                            .padding(horizontal = 4.dp, vertical = 4.dp)
+                                            .weight(1f),
+                                        colors = ButtonDefaults.buttonColors(backgroundColor=Color.Red),
+                                        contentPadding = PaddingValues(
+                                            vertical = 4.dp,
+                                            horizontal = 8.dp
+                                        ) // Adjust padding for smaller button
+                                    ) {
+                                        Text(
+                                            text = "Cancelar",
+                                            color = Color.White,
+                                            fontSize = 10.sp
+                                        ) // Smaller text
+                                    }
+                                }else{
+                                    Button(
+                                        onClick = {
+                                            articleToExchange = article
+                                            showDialog = true
+                                        },
+                                        modifier = Modifier
+                                            .padding(horizontal = 4.dp, vertical = 4.dp)
+                                            .weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            backgroundColor = Color(
+                                                0xFF2F96D8
+                                            )
+                                        ),
+                                        contentPadding = PaddingValues(
+                                            vertical = 4.dp,
+                                            horizontal = 8.dp
+                                        ) // Adjust padding for smaller button
+                                    ) {
+                                        Text(
+                                            text = "Intercambiar",
+                                            color = Color.White,
+                                            fontSize = 10.sp
+                                        ) // Smaller text
+                                    }
                                 }
                             }
+                        }
+                        if (showDialog) {
+                            AlertDialog(
+                                onDismissRequest = {
+                                    showDialog = false
+                                    articleToExchange = null
+                                },
+                                title = { Text(text = "Confirmar solicitud") },
+                                text = { Text(text = "¿Estás seguro que deseas solicitar el intercambio de ${articleToExchange?.title}?") },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            // Intercambiar
+                                            viewModel.startExchange(userId, article)
+                                            showDialog = false
+                                            articleToExchange = null
+                                        }
+                                    ) {
+                                        Text(text = "Confirm")
+                                    }
+                                },
+                                dismissButton = {
+                                    Button(
+                                        onClick = {
+                                            showDialog = false
+                                            articleToExchange = null
+                                        }
+                                    ) {
+                                        Text(text = "Cancelar")
+                                    }
+                                }
+                            )
+                        }
+                        if (showCancelDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showCancelDialog = false },
+                                title = { Text(text = "Confirmar cancelación") },
+                                text = {
+                                    Text(text = "¿Estás seguro que deseas cancelar el intercambio de ${article.title}? Se eliminará la conversación")
+                                },
+                                confirmButton = {
+                                    Button(onClick = {
+                                        viewModel.cancelExchange(userId, article.id ?: "")
+                                        viewModel.checkIfExchangeStarted(userId, article.id ?: "")
+                                        showCancelDialog = false
+                                    }) {
+                                        Text("Confirmar")
+                                    }
+                                },
+                                dismissButton = {
+                                    Button(onClick = { showCancelDialog = false }) {
+                                        Text("Cancelar")
+                                    }
+                                }
+                            )
                         }
                     }
-                )
-            }
-            if (showDialog) {
-                AlertDialog(
-                    onDismissRequest = {
-                        showDialog = false
-                        articleToDelete = null
-                    },
-                    title = { Text(text = "Confirm Deletion") },
-                    text = { Text(text = "Are you sure you want to delete this article?") },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                // Delete the article
-                                articleToDelete?.let { article ->
-                                    viewModel.deleteArticle(article.id)
-                                }
-                                showDialog = false
-                                articleToDelete = null
-                            }
-                        ) {
-                            Text(text = "Confirm")
-                        }
-                    },
-                    dismissButton = {
-                        Button(
-                            onClick = {
-                                showDialog = false
-                                articleToDelete = null
-                            }
-                        ) {
-                            Text(text = "Cancel")
-                        }
-                    }
-                )
             }
             Row(
                 modifier = Modifier
@@ -281,7 +352,6 @@ fun InventoryScene(viewModel: InventoryViewModel) {
                         tint = Color.White
                     )
                 }
-
                 IconButton(onClick = { viewModel.signOut() }) {
                     Icon(
                         Icons.AutoMirrored.Filled.ExitToApp,
@@ -292,54 +362,5 @@ fun InventoryScene(viewModel: InventoryViewModel) {
                 }
             }
         }
-    }
-}
-@Composable
-fun EmptyInventoryView(viewModel: InventoryViewModel) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Image(
-                painter = rememberAsyncImagePainter(R.drawable.empty_inventory_box),
-                contentDescription = "No Messages",
-                modifier = Modifier.size(120.dp)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "¡Tu inventario está vacío!",
-                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Text(
-                text = "Comienza a añadir artículos para intercambiar.",
-                style = TextStyle(fontSize = 16.sp),
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-            Button(
-                onClick = { viewModel.navigateToAddArticle() },
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2F96D8))
-            ) {
-                Text(text = "Agregar artículo", color = Color.White)
-            }
-        }
-    }
-}
-@Preview(showBackground = true)
-@Composable
-fun MainScenePreview() {
-    SwapzTheme {
-        LoginFactory(
-            navController = rememberNavController(),
-            sessionDataSource = SessionDataSource()
-        )
     }
 }

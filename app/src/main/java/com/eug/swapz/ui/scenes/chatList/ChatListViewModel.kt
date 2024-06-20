@@ -37,7 +37,7 @@ class ChatListViewModel(
             fetchChatList()
         }
     }
-    private suspend fun fetchChatList() {
+    suspend fun fetchChatList() {
         userId?.let { userId ->
             val chatList = fetchChatListFromFirebase(userId)
             _chatList.postValue(chatList)
@@ -112,14 +112,6 @@ class ChatListViewModel(
         }
     }
 
-
-    private fun navigateToExchange(userId: String, article: Article, chatId: String) {
-        viewModelScope.launch {
-            Log.d(TAG, "Navigating to exchange with user id: $userId")
-            navController.navigate("${AppRoutes.CHAT.value}/$userId/${article.id}/$chatId")
-        }
-    }
-
     fun navigateToChat(chatId: String, otherUserId: String) {
         viewModelScope.launch {
             Log.d(TAG, "Navigating to exchange with user id: $otherUserId")
@@ -142,6 +134,8 @@ class ChatListViewModel(
             navController.navigate(AppRoutes.INVENTORY.value)
         }
     }
+
+
     fun navigateToChatList(){
         viewModelScope.launch {
             navController.navigate(AppRoutes.CHAT_LIST.value)

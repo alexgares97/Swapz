@@ -20,7 +20,7 @@ class ChatFactory (
         return ChatScene(viewModel = viewModel)
     }
     @Composable
-    fun createWithArticleId(userId: String?, articleId: String?, chatId: String?) {
+    fun CreateWithArticleId(userId: String?, articleId: String?, chatId: String?) {
         // Create a ChatViewModel instance with the provided user ID and article ID
         val viewModel = ChatViewModel(navController, sessionDataSource, articlesDataSource)
 
@@ -33,7 +33,7 @@ class ChatFactory (
         ChatScene(viewModel = viewModel)
     }
     @Composable
-    fun createFromList(userId: String?, chatId: String?) {
+    fun CreateFromList(userId: String?, chatId: String?) {
         val viewModel = ChatViewModel(navController, sessionDataSource, articlesDataSource)
         userId?.let { viewModel.setUserId(it) }
         chatId?.let { viewModel.setChatId(it) }

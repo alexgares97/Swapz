@@ -1,11 +1,8 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.eug.swapz.ui.scenes.register
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,16 +20,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -63,6 +57,12 @@ import java.util.Locale
 fun RegisterScene(viewModel: RegisterViewModel) {
     val context = LocalContext.current
     val imageUrl = remember { mutableStateOf(TextFieldValue()) }
+
+    var usernameError by remember { mutableStateOf(false) }
+    var nameError by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+    var imageError by remember { mutableStateOf(false) }
 
     suspend fun uploadImageToFirebaseStorage(bitmap: Bitmap) {
         val storage = Firebase.storage
@@ -173,6 +173,15 @@ fun RegisterScene(viewModel: RegisterViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (imageError) {
+            Text(
+                text = "Por favor, sube una imagen.",
+                color = Color.Red,
+                fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.Start)
+            )
+        }
+
         IconButton(
             onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -215,8 +224,17 @@ fun RegisterScene(viewModel: RegisterViewModel) {
                         unfocusedBorderColor = Color.Gray,
                         textColor = Color.White,
                         cursorColor = Color.White
-                    )
+                    ),
+                    isError = usernameError
                 )
+                if (usernameError) {
+                    Text(
+                        text = "Por favor, rellena este campo.",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
 
                 OutlinedTextField(
                     value = nameState.value,
@@ -230,8 +248,17 @@ fun RegisterScene(viewModel: RegisterViewModel) {
                         unfocusedBorderColor = Color.Gray,
                         textColor = Color.White,
                         cursorColor = Color.White
-                    )
+                    ),
+                    isError = nameError
                 )
+                if (nameError) {
+                    Text(
+                        text = "Por favor, rellena este campo.",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
 
                 OutlinedTextField(
                     value = emailState.value,
@@ -245,8 +272,17 @@ fun RegisterScene(viewModel: RegisterViewModel) {
                         unfocusedBorderColor = Color.Gray,
                         textColor = Color.White,
                         cursorColor = Color.White
-                    )
+                    ),
+                    isError = emailError
                 )
+                if (emailError) {
+                    Text(
+                        text = "Por favor, rellena este campo.",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
 
                 OutlinedTextField(
                     value = passwordState.value,
@@ -267,8 +303,17 @@ fun RegisterScene(viewModel: RegisterViewModel) {
                         focusedLabelColor = Color(0xFF2F96D8),
                         unfocusedLabelColor = Color.Gray
                     ),
-                    shape = MaterialTheme.shapes.small
+                    shape = MaterialTheme.shapes.small,
+                    isError = passwordError
                 )
+                if (passwordError) {
+                    Text(
+                        text = "Por favor, rellena este campo.",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
             }
         }
 
@@ -286,10 +331,15 @@ fun RegisterScene(viewModel: RegisterViewModel) {
                     val password = passwordState.value
                     val photo = imageUrl.value.text
 
-                    if (name.isNotEmpty() && email.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty() && photo.isNotEmpty()) {
+                    usernameError = username.isEmpty()
+                    nameError = name.isEmpty()
+                    emailError = email.isEmpty()
+                    passwordError = password.isEmpty()
+                    imageError = photo.isEmpty()
+
+                    if (!usernameError && !nameError && !emailError && !passwordError && !imageError) {
                         if (username.length > 3) {
                             viewModel.signUp(email, password, username, name, photo)
-                            viewModel.navigateToLogin()
                         } else {
                             Toast.makeText(
                                 context,
@@ -309,7 +359,7 @@ fun RegisterScene(viewModel: RegisterViewModel) {
                 shape = RoundedCornerShape(50), // More rounded corners
                 modifier = Modifier
                     .weight(0.5f)
-                    .padding(horizontal = 20.dp) // Adjust padding between buttons
+                    .padding(horizontal = 30.dp) // Adjust padding between buttons
             ) {
                 Text("Enviar", color = Color.White)
             }
@@ -320,7 +370,7 @@ fun RegisterScene(viewModel: RegisterViewModel) {
                 shape = RoundedCornerShape(50), // More rounded corners
                 modifier = Modifier
                     .weight(0.5f)
-                    .padding(horizontal = 20.dp) // Adjust padding between buttons
+                    .padding(horizontal = 30.dp) // Adjust padding between buttons
             ) {
                 Text("Cancelar", color = Color.White)
             }
@@ -339,5 +389,3 @@ fun RegisterScenePreview() {
         )
     }
 }
-
-

@@ -40,6 +40,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.eug.swapz.R
 import com.google.firebase.ktx.Firebase
@@ -63,6 +64,14 @@ fun AddArticle(viewModel: AddArticleViewModel) {
     val selectedStatus = remember { mutableStateOf(TextFieldValue()) }
     val selectedCat = remember { mutableStateOf(TextFieldValue()) }
     val value = remember { mutableStateOf(TextFieldValue()) }
+
+    // State to track if a field is invalid
+    var titleError by remember { mutableStateOf(false) }
+    var descError by remember { mutableStateOf(false) }
+    var statusError by remember { mutableStateOf(false) }
+    var catError by remember { mutableStateOf(false) }
+    var valueError by remember { mutableStateOf(false) }
+    var imageError by remember { mutableStateOf(false) }
 
     val catOptions = listOf("Deportes", "Hogar", "Moda", "Otros")
     val statusOptions = listOf("Usado", "Bueno", "Muy bueno", "Excelente", "Sin abrir")
@@ -109,6 +118,19 @@ fun AddArticle(viewModel: AddArticleViewModel) {
         imageUrl.value = imageUrl.value.filter { it != imageUrlToDelete }
     }
 
+    fun validateFields(): Boolean {
+        var isValid = true
+        titleError = titleFieldValue.value.text.isEmpty()
+        descError = descFieldValue.value.text.isEmpty()
+        statusError = selectedStatus.value.text.isEmpty()
+        catError = selectedCat.value.text.isEmpty()
+        valueError = value.value.text.isEmpty()
+        imageError = imageUrl.value.isEmpty()
+
+        isValid = !(titleError || descError || statusError || catError || valueError || imageError)
+        return isValid
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -135,42 +157,68 @@ fun AddArticle(viewModel: AddArticleViewModel) {
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
-
-        LazyRow(
-            modifier = Modifier.padding(vertical = 16.dp)
+        Card(
+            modifier = Modifier
+                .size(160.dp)
+                .padding(8.dp),
+            shape = CircleShape,
+            colors = CardDefaults.cardColors(containerColor = Color.Gray),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            items(imageUrl.value) { imageUrl ->
-                if (imageUrl.text.isNotBlank()) {
-                    Box(modifier = Modifier.size(100.dp)) {
-                        Image(
-                            painter = rememberAsyncImagePainter(imageUrl.text),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
-                                .padding(4.dp)
-                        )
-                        IconButton(
-                            onClick = { deleteImg(imageUrl) },
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                        ) {
-                            Icon(
-                                Icons.Default.Clear,
+            LazyRow(
+                modifier = Modifier.padding(vertical = 16.dp)
+            ) {
+                items(imageUrl.value) { imageUrl ->
+                    if (imageUrl.text.isNotBlank()) {
+                        Box(modifier = Modifier.size(100.dp)) {
+                            Image(
+                                painter = rememberAsyncImagePainter(imageUrl.text),
                                 contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = Color.White
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
+                                    .padding(4.dp)
                             )
+                            IconButton(
+                                onClick = { deleteImg(imageUrl) },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                            ) {
+                                Icon(
+                                    Icons.Default.Clear,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = Color.White
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+        if (imageError) {
+            Text(
+                text = "Porfavor rellena este campo",
+                color = Color.Red,
+                fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.Start)
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
-
+        IconButton(
+            onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Icon(
+                Icons.Default.PhotoCamera,
+                contentDescription = null,
+                modifier = Modifier.size(50.dp),
+                tint = Color.White
+            )
+        }
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -196,6 +244,14 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 )
+                if (titleError) {
+                    Text(
+                        text = "Porfavor rellena este campo",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
 
                 OutlinedTextField(
                     value = descFieldValue.value,
@@ -211,6 +267,14 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 )
+                if (descError) {
+                    Text(
+                        text = "Porfavor rellena este campo",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
 
                 Box(
                     modifier = Modifier
@@ -227,7 +291,9 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                             focusedBorderColor = Color.White,
                             unfocusedBorderColor = Color.Gray,
                             textColor = Color.White,
-                            cursorColor = Color.White
+                            cursorColor = Color.White,
+                            disabledTextColor = Color.White // Ensure the text color is white even when disabled
+
                         ),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
@@ -249,6 +315,14 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                         }
                     }
                 }
+                if (statusError) {
+                    Text(
+                        text = "Porfavor rellena este campo",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
 
                 Box(
                     modifier = Modifier
@@ -265,7 +339,9 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                             focusedBorderColor = Color.White,
                             unfocusedBorderColor = Color.Gray,
                             textColor = Color.White,
-                            cursorColor = Color.White
+                            cursorColor = Color.White,
+                            disabledTextColor = Color.White // Ensure the text color is white even when disabled
+
                         ),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
@@ -287,6 +363,14 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                         }
                     }
                 }
+                if (catError) {
+                    Text(
+                        text = "Porfavor rellena este campo",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
 
                 OutlinedTextField(
                     value = value.value,
@@ -296,24 +380,22 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                         focusedBorderColor = Color.White,
                         unfocusedBorderColor = Color.Gray,
                         textColor = Color.White,
-                        cursorColor = Color.White
+                        cursorColor = Color.White,
+
                     ),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 )
-            }
-
-            IconButton(
-                onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Icon(
-                    Icons.Default.PhotoCamera,
-                    contentDescription = null,
-                    modifier = Modifier.size(50.dp),
-                    tint = Color.White
-                )
+                if (valueError) {
+                    Text(
+                        text = "Porfavor rellena este campo",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -325,7 +407,7 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                 Box(
                     modifier = Modifier
                         .weight(0.3f)
-                        .padding(8.dp)
+                        .padding(16.dp)
                         .height(48.dp)
                         .clip(RoundedCornerShape(24.dp))
                         .background(
@@ -335,19 +417,7 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                             shape = RoundedCornerShape(24.dp)
                         )
                         .clickable {
-                            if (titleFieldValue.value.text.isEmpty() ||
-                                descFieldValue.value.text.isEmpty() ||
-                                selectedStatus.value.text.isEmpty() ||
-                                selectedCat.value.text.isEmpty() ||
-                                value.value.text.isEmpty() ||
-                                imageUrl.value.any { it.text.isBlank() }
-                            ) {
-                                Toast.makeText(
-                                    context,
-                                    "Rellena todos los campos.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
+                            if (validateFields()) {
                                 addArticleDialog = false
                                 viewModel.addArticle(
                                     titleFieldValue.value.text,
@@ -358,9 +428,15 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                                     imageUrl.value.map { it.text }
                                 )
                                 viewModel.navigateToMain()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Rellena todos los campos.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         },
-                        contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center
                 ) {
                     Text("Subir", color = Color.White, fontWeight = FontWeight.Bold)
                 }
@@ -368,7 +444,7 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                 Box(
                     modifier = Modifier
                         .weight(0.3f)
-                        .padding(8.dp)
+                        .padding(16.dp)
                         .height(48.dp)
                         .clip(RoundedCornerShape(24.dp))
                         .background(

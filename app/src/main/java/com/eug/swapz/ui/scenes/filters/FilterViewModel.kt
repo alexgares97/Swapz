@@ -21,14 +21,15 @@ class FilterViewModel(
 ) : ViewModel() {
     private val _articles = MutableLiveData<List<Article>>()
     val articles: LiveData<List<Article>> = _articles
-    private val auth = FirebaseAuth.getInstance()
-
+    private val currentUserId = sessionDataSource.getCurrentUserId()
     fun fetch() {
         val category = getCategoryFromRoute()
         viewModelScope.launch {
             try {
-                val articleList = articlesDataSource.getCategoryArticles(category)
+                val allArticles = articlesDataSource.getCategoryArticles(category)
+                val articleList = allArticles.filter { it.user != currentUserId }
                 _articles.value = articleList
+
             } catch (e: Exception) {
                 Log.e("FilterViewModel", "Error fetching articles for category: $category", e)
             }
