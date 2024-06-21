@@ -4,8 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -50,13 +53,12 @@ fun ChatScene(viewModel: ChatViewModel) {
     val otherUserPhotoUrl by viewModel.otherUserPhotoUrl.observeAsState("")
     val otherUserName by viewModel.otherUserName.observeAsState("")
     val currentUserUid = viewModel.getCurrentUserId() ?: return
+    val listState = rememberLazyListState()
+    var showCancelDialog by remember { mutableStateOf(false) }
 
-
-    //val name by viewModel.name.observeAsState("")
     DisposableEffect(Unit) {
         Log.d("ChatScene", "ACTUALIZANDO")
-        //viewModel.fetchOtherUserPhotosFromChatId(currentChatId,currentUserUid)
-       viewModel.updateOtherUserDetails(currentChatId, currentUserUid)
+        viewModel.updateOtherUserDetails(currentChatId, currentUserUid)
         viewModel.listenForChatMessages(currentChatId)
         onDispose {
             // Clean up the listener when the composable is removed from the composition
@@ -84,7 +86,7 @@ fun ChatScene(viewModel: ChatViewModel) {
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
-                text = otherUserName!!,
+                text = otherUserName ?: "",
                 style = MaterialTheme.typography.subtitle1,
                 fontWeight = FontWeight.Bold
             )
@@ -92,13 +94,37 @@ fun ChatScene(viewModel: ChatViewModel) {
 
         Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
 
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            reverseLayout = true // Reverse layout to start from the bottom
+        // Cancel Exchange Button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp), // Adjust padding as needed
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            items(chatMessages.reversed()) { message ->
+            Button(
+                onClick = {
+                    showCancelDialog = true
+                },
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red),
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Text("Cancelar Intercambio", color = Color.White)
+            }
+        }
+
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.weight(1f)
+        ) {
+            items(chatMessages) { message ->
                 ChatMessage(message)
             }
+        }
+
+        LaunchedEffect(chatMessages.size) {
+            // Scroll to the bottom when the messages list changes
+            listState.animateScrollToItem(chatMessages.size)
         }
 
         Row(
@@ -134,6 +160,29 @@ fun ChatScene(viewModel: ChatViewModel) {
             style = MaterialTheme.typography.body1
         )
     }
+
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text(text = "Confirmar Cancelación") },
+            text = { Text(text = "¿Estás seguro de que deseas cancelar el intercambio? Se eliminará la conversación.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.cancelExchange(currentChatId)
+                        showCancelDialog = false
+                    }
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showCancelDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -153,31 +202,26 @@ fun ChatMessage(message: ChatMessage) {
                 .padding(8.dp)
         ) {
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally // Center content horizontally
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Display the image if imageUrl is not null
                 if (!message.imageUrl.isNullOrEmpty() && !message.title.isNullOrEmpty()) {
                     Image(
                         painter = rememberAsyncImagePainter(message.imageUrl!!),
                         contentDescription = null,
                         modifier = Modifier
-                            .size(100.dp) // Adjust size as needed
-                            .align(Alignment.CenterHorizontally) // Center the image horizontally
+                            .size(100.dp)
+                            .align(Alignment.CenterHorizontally)
                     )
                     Text(
-                        text = message.title ?: "", // Use title if not null, otherwise empty string
-                        style = TextStyle( // Define text style for the title
-                            fontWeight = FontWeight.Bold, // Example: bold
-                            fontSize = 18.sp, // Example: 18sp
-                            color = Color.White // Example: white color
+                        text = message.title ?: "",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color.White
                         )
                     )
-                } else {
-                    // Handle the case where imageUrl is null or empty
-                    // For example, you can display a placeholder image or hide the Image composable
                 }
 
-                // Display the text message
                 Text(
                     text = message.text,
                     color = if (message.isSentByUser) Color.Black else Color.White,
@@ -187,6 +231,7 @@ fun ChatMessage(message: ChatMessage) {
         }
     }
 }
+
 @Composable
 fun BackIcon(
     onClick: () -> Unit,
@@ -199,7 +244,6 @@ fun BackIcon(
         )
     }
 }
-
 
 
 

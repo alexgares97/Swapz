@@ -174,6 +174,18 @@ class ChatViewModel(
     fun getCurrentUserId(): String? {
         return sessionDataSource.getCurrentUserId()
     }
+    fun cancelExchange(chatId: String) {
+        viewModelScope.launch {
+            // Logic to cancel the exchange and clean up the chat
+            // For example, you might delete the chat or remove the related messages
+            val chatsRef = FirebaseDatabase.getInstance().getReference("chats").child(chatId)
+            chatsRef.removeValue().addOnSuccessListener {
+                Log.d("ChatViewModel", "Exchange cancelled successfully")
+            }.addOnFailureListener { e ->
+                Log.e("ChatViewModel", "Error cancelling exchange", e)
+            }
+        }
+    }
     override fun onCleared() {
         // Remove the ValueEventListener when ViewModel is cleared
         chatQuery.removeEventListener(chatListener)

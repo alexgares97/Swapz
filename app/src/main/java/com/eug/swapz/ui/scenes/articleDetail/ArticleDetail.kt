@@ -104,11 +104,11 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                     modifier = Modifier
                                         .padding(end = 16.dp)
                                         .align(Alignment.CenterVertically),
-                                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red),
+                                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
                                     Text(
-                                        text = "Cancelar",
+                                        text = "Finalizar",
                                         color = Color.White,
                                         fontSize = 14.sp
                                     )

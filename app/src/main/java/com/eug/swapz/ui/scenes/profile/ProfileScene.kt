@@ -72,7 +72,7 @@ import com.eug.swapz.models.Article
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScene(viewModel: ProfileViewModel){
+fun ProfileScene(viewModel: ProfileViewModel) {
     val articles by viewModel.articles.observeAsState(emptyList())
     val name by viewModel.otherUserName.observeAsState("")
     val userId = viewModel.node
@@ -80,7 +80,7 @@ fun ProfileScene(viewModel: ProfileViewModel){
     var articleToExchange by remember { mutableStateOf<Article?>(null) }
     var showDialog by remember { mutableStateOf(false) }
     var showCancelDialog by remember { mutableStateOf(false) }
-    val exchangeStatusMap by viewModel.exchangeStatusMap.observeAsState(mapOf())
+    val hasStartedExchangeMap by viewModel.hasStartedExchangeMap.observeAsState(emptyMap())
 
     LaunchedEffect(Unit) {
         viewModel.fetch()
@@ -118,10 +118,10 @@ fun ProfileScene(viewModel: ProfileViewModel){
             )
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()
+        Box(modifier = Modifier
+            .fillMaxSize()
             .padding(innerPadding)
-        )
-        {
+        ) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 150.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -129,177 +129,176 @@ fun ProfileScene(viewModel: ProfileViewModel){
                 modifier = Modifier.padding(16.dp)
             ) {
                 items(articles) { article ->
-                    val hasStartedExchange = exchangeStatusMap[article.id] ?: false
-
                     LaunchedEffect(article.id) {
                         viewModel.checkIfExchangeStarted(userId, article.id ?: "")
                     }
-                        Column(
-                            Modifier
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
+                            .shadow(4.dp, RoundedCornerShape(8.dp))
+                            .padding(8.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { viewModel.navigateToDetail(article) }
+                            .padding(8.dp) // Added padding for the card
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .height(120.dp)
                                 .fillMaxWidth()
-                                .background(Color.White)
-                                .shadow(4.dp, RoundedCornerShape(8.dp))
-                                .padding(8.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { viewModel.navigateToDetail(article) }
-                                .padding(8.dp) // Added padding for the card
+                                .align(Alignment.CenterHorizontally)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop,
+                        )
+                        val max_title_length = 19
+                        val max_desc_length = 55 // Define your maximum text length threshold
+                        Text(
+                            text = if (article.title.length <= max_title_length) {
+                                article.title
+                            } else {
+                                "${article.title.take(max_title_length)}..."
+                            },
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.padding(start = 13.dp, end = 10.dp),
+                            maxLines = 1
+                        )
+                        Text(
+                            text = if (article.desc.length <= max_desc_length) article.desc
+                            else "${article.desc.take(max_desc_length)}...",
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Justify),
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                        )
+                        Text(
+                            text = "Estado: ${article.status}",
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+                        Text(
+                            text = "Categoría: ${article.cat}",
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+                        Text(
+                            text = "Valor: ${article.value} €",
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .height(120.dp)
-                                    .fillMaxWidth()
-                                    .align(Alignment.CenterHorizontally)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop,
-                            )
-                            val max_title_length = 19
-                            val max_desc_length = 55// Define your maximum text length threshold
-                            Text(
-                                text = if (article.title.length <= max_title_length) {
-                                    article.title
-                                } else {
-                                    "${article.title.take(max_title_length)}..."
-                                },
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                modifier = Modifier.padding(start = 13.dp, end = 10.dp),
-                                maxLines = 1
-                            )
-                            Text(
-                                text = if (article.desc.length <= max_desc_length) article.desc
-                                else "${article.desc.take(max_desc_length)}...",
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Justify),
-                                modifier = Modifier
-                                    .padding(vertical = 8.dp)
-                            )
-                            Text(
-                                text = "Estado: ${article.status}",
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
-                                modifier = Modifier.align(Alignment.Start)
-                            )
-                            Text(
-                                text = "Categoría: ${article.cat}",
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
-                                modifier = Modifier.align(Alignment.Start)
-                            )
-                            Text(
-                                text = "Valor: ${article.value} €",
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
-                                modifier = Modifier.align(Alignment.Start)
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                if (hasStartedExchange) {
-                                    Button(
-                                        onClick = {
-                                            articleToExchange = article
-                                            showCancelDialog = true
-                                        },
-                                        modifier = Modifier
-                                            .padding(horizontal = 4.dp, vertical = 4.dp)
-                                            .weight(1f),
-                                        colors = ButtonDefaults.buttonColors(backgroundColor=Color.Red),
-                                        contentPadding = PaddingValues(
-                                            vertical = 4.dp,
-                                            horizontal = 8.dp
-                                        ) // Adjust padding for smaller button
-                                    ) {
-                                        Text(
-                                            text = "Cancelar",
-                                            color = Color.White,
-                                            fontSize = 10.sp
-                                        ) // Smaller text
-                                    }
-                                }else{
-                                    Button(
-                                        onClick = {
-                                            articleToExchange = article
-                                            showDialog = true
-                                        },
-                                        modifier = Modifier
-                                            .padding(horizontal = 4.dp, vertical = 4.dp)
-                                            .weight(1f),
-                                        colors = ButtonDefaults.buttonColors(
-                                            backgroundColor = Color(
-                                                0xFF2F96D8
-                                            )
-                                        ),
-                                        contentPadding = PaddingValues(
-                                            vertical = 4.dp,
-                                            horizontal = 8.dp
-                                        ) // Adjust padding for smaller button
-                                    ) {
-                                        Text(
-                                            text = "Intercambiar",
-                                            color = Color.White,
-                                            fontSize = 10.sp
-                                        ) // Smaller text
-                                    }
+                            val hasStartedExchange = hasStartedExchangeMap[article.id] ?: false
+                            if (hasStartedExchange) {
+                                Button(
+                                    onClick = {
+                                        articleToExchange = article
+                                        showCancelDialog = true
+                                    },
+                                    modifier = Modifier
+                                        .padding(horizontal = 4.dp, vertical = 4.dp)
+                                        .weight(1f),
+                                    colors = ButtonDefaults.buttonColors(backgroundColor=Color.Green),
+                                    contentPadding = PaddingValues(
+                                        vertical = 4.dp,
+                                        horizontal = 8.dp
+                                    ) // Adjust padding for smaller button
+                                ) {
+                                    Text(
+                                        text = "Finalizar",
+                                        color = Color.White,
+                                        fontSize = 10.sp
+                                    ) // Smaller text
+                                }
+                            } else {
+                                Button(
+                                    onClick = {
+                                        articleToExchange = article
+                                        showDialog = true
+                                    },
+                                    modifier = Modifier
+                                        .padding(horizontal = 4.dp, vertical = 4.dp)
+                                        .weight(1f),
+                                    colors = ButtonDefaults.buttonColors(
+                                        backgroundColor = Color(
+                                            0xFF2F96D8
+                                        )
+                                    ),
+                                    contentPadding = PaddingValues(
+                                        vertical = 4.dp,
+                                        horizontal = 8.dp
+                                    ) // Adjust padding for smaller button
+                                ) {
+                                    Text(
+                                        text = "Intercambiar",
+                                        color = Color.White,
+                                        fontSize = 10.sp
+                                    ) // Smaller text
                                 }
                             }
                         }
-                        if (showDialog) {
-                            AlertDialog(
-                                onDismissRequest = {
-                                    showDialog = false
-                                    articleToExchange = null
-                                },
-                                title = { Text(text = "Confirmar solicitud") },
-                                text = { Text(text = "¿Estás seguro que deseas solicitar el intercambio de ${articleToExchange?.title}?") },
-                                confirmButton = {
-                                    Button(
-                                        onClick = {
-                                            // Intercambiar
-                                            viewModel.startExchange(userId, article)
-                                            showDialog = false
-                                            articleToExchange = null
-                                        }
-                                    ) {
-                                        Text(text = "Confirm")
-                                    }
-                                },
-                                dismissButton = {
-                                    Button(
-                                        onClick = {
-                                            showDialog = false
-                                            articleToExchange = null
-                                        }
-                                    ) {
-                                        Text(text = "Cancelar")
-                                    }
-                                }
-                            )
-                        }
-                        if (showCancelDialog) {
-                            AlertDialog(
-                                onDismissRequest = { showCancelDialog = false },
-                                title = { Text(text = "Confirmar cancelación") },
-                                text = {
-                                    Text(text = "¿Estás seguro que deseas cancelar el intercambio de ${article.title}? Se eliminará la conversación")
-                                },
-                                confirmButton = {
-                                    Button(onClick = {
-                                        viewModel.cancelExchange(userId, article.id ?: "")
-                                        viewModel.checkIfExchangeStarted(userId, article.id ?: "")
-                                        showCancelDialog = false
-                                    }) {
-                                        Text("Confirmar")
-                                    }
-                                },
-                                dismissButton = {
-                                    Button(onClick = { showCancelDialog = false }) {
-                                        Text("Cancelar")
-                                    }
-                                }
-                            )
-                        }
                     }
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = {
+                                showDialog = false
+                                articleToExchange = null
+                            },
+                            title = { Text(text = "Confirmar solicitud") },
+                            text = { Text(text = "¿Estás seguro que deseas solicitar el intercambio de ${articleToExchange?.title}?") },
+                            confirmButton = {
+                                Button(
+                                    onClick = {
+                                        // Intercambiar
+                                        viewModel.startExchange(userId, article)
+                                        showDialog = false
+                                        articleToExchange = null
+                                    }
+                                ) {
+                                    Text(text = "Confirm")
+                                }
+                            },
+                            dismissButton = {
+                                Button(
+                                    onClick = {
+                                        showDialog = false
+                                        articleToExchange = null
+                                    }
+                                ) {
+                                    Text(text = "Cancelar")
+                                }
+                            }
+                        )
+                    }
+                    if (showCancelDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showCancelDialog = false },
+                            title = { Text(text = "Confirmar cancelación") },
+                            text = {
+                                Text(text = "¿Estás seguro que deseas cancelar el intercambio de ${article.title}? Se eliminará la conversación")
+                            },
+                            confirmButton = {
+                                Button(onClick = {
+                                    viewModel.cancelExchange(userId, article.id ?: "")
+                                    viewModel.checkIfExchangeStarted(userId, article.id ?: "")
+                                    showCancelDialog = false
+                                }) {
+                                    Text("Confirmar")
+                                }
+                            },
+                            dismissButton = {
+                                Button(onClick = { showCancelDialog = false }) {
+                                    Text("Cancelar")
+                                }
+                            }
+                        )
+                    }
+                }
             }
             Row(
                 modifier = Modifier
@@ -318,7 +317,7 @@ fun ProfileScene(viewModel: ProfileViewModel){
                     .align(Alignment.BottomCenter),
                 horizontalArrangement = Arrangement.SpaceEvenly, // Espaciar elementos equitativamente
                 verticalAlignment = Alignment.CenterVertically
-            ){
+            ) {
                 IconButton(onClick = { viewModel.navigateToMain() }) {
                     Icon(
                         Icons.Filled.Home,

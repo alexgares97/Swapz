@@ -186,7 +186,10 @@ fun InventoryScene(viewModel: InventoryViewModel) {
                                     modifier = Modifier
                                         .padding(horizontal = 4.dp, vertical = 4.dp)
                                         .weight(1f),
-                                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2F96D8)),
+                                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(
+                                        0xFFFC655A
+                                    )
+                                    ),
                                     contentPadding = PaddingValues(vertical = 4.dp, horizontal = 8.dp) // Adjust padding for smaller button
                                 ) {
                                     Text(text = "Eliminar", color = Color.White, fontSize = 10.sp) // Smaller text
@@ -202,8 +205,8 @@ fun InventoryScene(viewModel: InventoryViewModel) {
                         showDialog = false
                         articleToDelete = null
                     },
-                    title = { Text(text = "Confirm Deletion") },
-                    text = { Text(text = "Are you sure you want to delete this article?") },
+                    title = { Text(text = "Confirma la eliminación") },
+                    text = { Text(text = "¿Estas seguro que deseas eliminar este artículo?") },
                     confirmButton = {
                         Button(
                             onClick = {
