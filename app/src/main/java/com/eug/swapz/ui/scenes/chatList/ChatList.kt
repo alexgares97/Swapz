@@ -39,9 +39,7 @@ import com.eug.swapz.ui.scenes.chatList.ChatListViewModel
 @Composable
 fun ChatList(viewModel: ChatListViewModel) {
     val chatListState = viewModel.chatList.observeAsState(emptyList())
-    LaunchedEffect(Unit) {
-        viewModel.fetchChatList()
-    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Spacer(modifier = Modifier.height(16.dp))
         Text(

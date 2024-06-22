@@ -49,7 +49,6 @@ class ChatListViewModel(
         return suspendCancellableCoroutine { continuation ->
             val databaseReference = FirebaseDatabase.getInstance().getReference("chats")
 
-
             val chatList = mutableListOf<Chat>()
 
             databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -58,19 +57,19 @@ class ChatListViewModel(
                         val chatId = chatSnapshot.key ?: ""
                         Log.d(TAG, "onDataChange: $chatId")
                         if (chatId.contains(userId)) {
-                            val lastMessageSnapshot = chatSnapshot.children.lastOrNull()
+                            // Fetch the last message from the "messages" node
+                            val messagesSnapshot = chatSnapshot.child("messages")
+                            val lastMessageSnapshot = messagesSnapshot.children.lastOrNull()
 
                             lastMessageSnapshot?.let { messageSnapshot ->
-                                val text =
-                                    messageSnapshot.child("text").getValue(String::class.java)
+                                val text = messageSnapshot.child("text").getValue(String::class.java)
 
                                 if (text != null) {
-                                    val otherUserId =
-                                        chatSnapshot.key?.split("-")?.find { it != userId }
+                                    val otherUserId = chatId.split("-").find { it != userId }
                                     if (otherUserId != null) {
-                                        val usersReference =
-                                            FirebaseDatabase.getInstance().getReference("users")
-                                                .child(otherUserId)
+                                        val usersReference = FirebaseDatabase.getInstance()
+                                            .getReference("users")
+                                            .child(otherUserId)
                                         usersReference.addListenerForSingleValueEvent(object :
                                             ValueEventListener {
                                             override fun onDataChange(userSnapshot: DataSnapshot) {
@@ -111,6 +110,7 @@ class ChatListViewModel(
             })
         }
     }
+
 
     fun navigateToChat(chatId: String, otherUserId: String) {
         viewModelScope.launch {

@@ -71,6 +71,8 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                             modifier = Modifier.fillMaxWidth()
                                 .clickable{viewModel.navigateToProfile(userId)}
                         ) {
+                            BackIcon(onClick = { viewModel.home() })
+
                             Image(
                                 painter = rememberAsyncImagePainter(otherUserPhoto),
                                 contentDescription = "User Icon",
@@ -356,4 +358,16 @@ private fun Indicator(
             .size(size.dp)
             .background(color)
     )
+}
+@Composable
+fun BackIcon(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    androidx.compose.material.IconButton(onClick = onClick, modifier = modifier) {
+        androidx.compose.material.Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Back"
+        )
+    }
 }

@@ -5,5 +5,5 @@ data class Chat(
     val otherUserId: String,
     val name: String,
     val text: String,
-    val photoUrl: String
+    val photoUrl: String,
 )

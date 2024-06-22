@@ -1,7 +1,6 @@
 package com.eug.swapz.ui.scenes.chat
 
 
-import android.util.Base64
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -48,55 +47,78 @@ class ChatViewModel(
     val otherUserPhotoUrl: LiveData<String?> = _otherUserPhotoUrl
     private val _otherUserName = MutableLiveData<String?>()
     val otherUserName: LiveData<String?> = _otherUserName
+    private val _articles = MutableLiveData<List<Article>>()
+    val articles: LiveData<List<Article>> = _articles
+    var senderUserId = ""
 
     fun listenForChatMessages(currentChatId: String) {
-        Log.d("ChatViewModel", "CHATID: $currentChatId")
-        val chatQuery = databaseReference.child(currentChatId)
+        Log.d("ChatViewModel", "Listening to chat ID: $currentChatId")
+
+        val chatQuery = databaseReference.child(currentChatId).child("messages")
         val chatListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val messages = mutableListOf<ChatMessage>()
-                // Iterate through each child node (message ID) under the currentChatId
-                snapshot.children.forEach { messageSnapshot ->
-                    // Retrieve senderId, text, imageUrl, and title from the messageSnapshot
-                    val senderId = messageSnapshot.child("senderId").getValue(String::class.java)
-                    val text = messageSnapshot.child("text").getValue(String::class.java)
+                for (messageSnapshot in snapshot.children) {
+                    val senderId = messageSnapshot.child("senderId").getValue(String::class.java) ?: ""
+                    val text = messageSnapshot.child("text").getValue(String::class.java) ?: ""
                     val imageUrl = messageSnapshot.child("imageUrl").getValue(String::class.java)
                     val title = messageSnapshot.child("title").getValue(String::class.java)
+                    val timestamp = messageSnapshot.child("timestamp").getValue(Long::class.java) ?: 0L
+                    val isInventory = messageSnapshot.child("isInventory").getValue(Boolean::class.java) ?: false
 
-                    // Check if all required fields are not null
-                    if (senderId != null && text != null) {
-                        val chatMessage = ChatMessage(senderId, text, imageUrl, title)
-                        messages.add(chatMessage)
-                    }
+                    val chatMessage = ChatMessage(senderId, text, imageUrl, title, timestamp, isInventory)
+                    messages.add(chatMessage)
                 }
-                // Update _messages LiveData with the new message list
-                _messages.value = messages
+                _messages.postValue(messages) // Use postValue for thread safety
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Handle error
                 Log.e("ChatViewModel", "Database error: ${error.message}")
             }
         }
-        // Add a single ValueEventListener to the chatQuery
+
         chatQuery.addValueEventListener(chatListener)
+
+        // Save references to remove the listener later if needed
         this.chatQuery = chatQuery
         this.chatListener = chatListener
     }
+
+    // Función para obtener los artículos de un usuario
+    fun getUserArticles(userId: String) {
+        viewModelScope.launch {
+            if (userId.isNotEmpty()) {
+                val articleList = articlesDataSource.getUserArticles(userId)
+                _articles.value = articleList
+                // No need to call subscribe here, as fetching user articles already does the job
+            } else {
+                Log.e("InventoryViewModel", "User ID is null or empty")
+            }
+        }
+    }
+
+
 
     fun sendMessage(message: String?) {
         val currentUserUid = sessionDataSource.getCurrentUserId() ?: return
 
         viewModelScope.launch {
             try {
-                // Create a new message node under the chatId node in the Firebase Realtime Database
-                val messageId = databaseReference.child(node).push().key ?: ""
+                // Reference to the messages node
+                val messagesReference = databaseReference.child(node).child("messages")
+                // Generate a new message ID
+                val messageId = messagesReference.push().key ?: return@launch
+
+                // Prepare the message data
                 val messageData = mapOf(
                     "senderId" to currentUserUid,
                     "text" to message,
-                    "timestamp" to ServerValue.TIMESTAMP
+                    "timestamp" to ServerValue.TIMESTAMP,
+                    "isInventory" to false
                 )
-                databaseReference.child(node).child(messageId).setValue(messageData)
+
+                // Set the value for the new message
+                messagesReference.child(messageId).setValue(messageData)
                     .addOnSuccessListener {
                         // Message sent successfully
                         Log.d("ChatViewModel", "Message sent successfully")
@@ -113,6 +135,7 @@ class ChatViewModel(
             }
         }
     }
+
     fun cleanupChatMessagesListener() {
         // Remove the listener for chat messages here
         // For example, if you're using Firebase Realtime Database:
@@ -185,6 +208,12 @@ class ChatViewModel(
                 Log.e("ChatViewModel", "Error cancelling exchange", e)
             }
         }
+        navigateToChatList()
+    }
+    fun navigateToChatList() {
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.CHAT_LIST.value)
+        }
     }
     override fun onCleared() {
         // Remove the ValueEventListener when ViewModel is cleared
@@ -194,6 +223,12 @@ class ChatViewModel(
 
     fun goBack() {
         navController.popBackStack()
+    }
+    fun navigateToDetail(article: Article) {
+        viewModelScope.launch {
+            Log.d("Navigating to article detail", "" + article.id)
+            navController.navigate(AppRoutes.ARTICLE_DETAIL.value + "/" + article.id)
+        }
     }
 
     fun signOut() {

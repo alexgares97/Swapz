@@ -10,19 +10,20 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Pink40,
+    primary = Color(0xFF2F96D8),
     secondary = Pink40,
     tertiary = Pink80
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Pink40,
+    primary = Color(0xFF2F96D8),
     secondary = Pink40,
     tertiary = Pink40
 
