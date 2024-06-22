@@ -51,6 +51,8 @@ class ChatViewModel(
     val articles: LiveData<List<Article>> = _articles
     private val _status = MutableLiveData<String>()
     var status: LiveData<String> = _status
+    private val _requestorId = MutableLiveData<String>()
+    var requestorId: LiveData<String> = _requestorId
 
     fun listenForChatMessages(currentChatId: String) {
         Log.d("ChatViewModel", "Listening to chat ID: $currentChatId")
@@ -255,6 +257,26 @@ class ChatViewModel(
             }
         })
     }
+    fun getRequestorId(chatId: String) {
+        val chatRef = databaseReference.child(chatId)
+        chatRef.child("participants").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val participants = snapshot.children.toList()
+                if (participants.isNotEmpty()) {
+                    val secondParticipant = participants[0]
+                    val requestorIdValue = secondParticipant.getValue(String::class.java) // Obtiene el valor del segundo participante
+                    _requestorId.value = requestorIdValue?:""
+                } else {
+                    Log.e("ChatViewModel", "No hay suficientes participantes")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("ChatViewModel", "Error listening for chat status", error.toException())
+            }
+        })
+    }
+
 
     fun updateChatStatus(chatId: String, status: String, selectedArticleId: String? = null) {
         val chatRef = FirebaseDatabase.getInstance().getReference("chats").child(chatId)
@@ -272,7 +294,20 @@ class ChatViewModel(
             }
     }
 
+    fun confirmExchange(chatId: String, status: String) {
+        val chatRef = FirebaseDatabase.getInstance().getReference("chats").child(chatId)
+        val updates = mapOf(
+            "status" to status
+        )
 
+        chatRef.updateChildren(updates)
+            .addOnSuccessListener {
+                Log.d("ChatViewModel", "Chat status updated to $status")
+            }
+            .addOnFailureListener { e ->
+                Log.e("ChatViewModel", "Error updating chat status", e)
+            }
+    }
 
     fun navigateToChatList() {
         viewModelScope.launch {

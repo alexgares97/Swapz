@@ -1,6 +1,9 @@
+import android.animation.Animator
 import android.util.Log
+import android.view.ViewGroup
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,11 +41,18 @@ import com.eug.swapz.ui.scenes.chat.ChatViewModel
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.text.style.TextOverflow
 import com.eug.swapz.models.Article
-
+import androidx.compose.runtime.*
+import androidx.compose.ui.viewinterop.AndroidView
+import com.airbnb.lottie.LottieAnimationView
+import com.airbnb.lottie.LottieDrawable
+import com.airbnb.lottie.LottieProperty
+import com.airbnb.lottie.model.KeyPath
+import com.eug.swapz.R
 
 // Data class representing a chat message
 
@@ -57,20 +67,29 @@ fun ChatScene(viewModel: ChatViewModel) {
     val currentUserUid = viewModel.getCurrentUserId() ?: return
     val listState = rememberLazyListState()
     var showCancelDialog by remember { mutableStateOf(false) }
+    val status by viewModel.status.observeAsState("")
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    val requestor by viewModel.requestorId.observeAsState("")
+    var showConfetti by remember { mutableStateOf(false) }
+
+
 
     DisposableEffect(currentChatId) {
-        Log.d("ChatScene", "Listening for chat messages")
+        Log.d("ChatScene", "Listening for chat messages and status")
         viewModel.updateOtherUserDetails(currentChatId, currentUserUid)
         viewModel.listenForChatMessages(currentChatId)
-        viewModel.listenForChatStatus(currentChatId) // Add this line
-
+        viewModel.listenForChatStatus(currentChatId)
+        viewModel.getRequestorId(currentChatId)
         onDispose {
             viewModel.cleanupChatMessagesListener()
+            //viewModel.cleanupChatStatusListener()
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Encabezado con la foto y nombre del usuario
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(Color(0xFFF5F5F5))) {
+        // Header with user photo and name
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -84,7 +103,9 @@ fun ChatScene(viewModel: ChatViewModel) {
                 contentDescription = "User Icon",
                 modifier = Modifier
                     .size(50.dp)
-                    .clip(RoundedCornerShape(25.dp)),
+                    .clip(RoundedCornerShape(25.dp))
+                    .background(Color.White, RoundedCornerShape(25.dp))
+                    .border(2.dp, Color.Gray, RoundedCornerShape(25.dp)),
                 contentScale = ContentScale.Crop
             )
 
@@ -99,7 +120,7 @@ fun ChatScene(viewModel: ChatViewModel) {
 
         Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
 
-        // Botón para cancelar el intercambio
+        // Buttons for cancel and confirm
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,14 +132,35 @@ fun ChatScene(viewModel: ChatViewModel) {
                 onClick = {
                     showCancelDialog = true
                 },
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red),
-                modifier = Modifier.padding(8.dp)
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFF5252)),
+                shape = RoundedCornerShape(50),
+                modifier = Modifier
+                    .padding(8.dp)
+                    .height(50.dp)
             ) {
                 Text("Cancelar Intercambio", color = Color.White)
             }
+
+            // Show Confirm button if the status is selected
+            if (status == "selected" &&  currentUserUid == requestor ) {
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        showConfirmDialog = true
+                    },
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50)),
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .height(50.dp)
+                ) {
+                    Text("Confirmar", color = Color.White)
+                }
+            }
         }
 
-        // Aplicar el filtrado de mensajes antes de renderizar
+        // Filter messages before rendering
         val filteredMessages = remember(chatMessages, currentUserUid) {
             chatMessages.filterNot { message ->
                 message.isInventory && message.senderId == currentUserUid
@@ -127,7 +169,9 @@ fun ChatScene(viewModel: ChatViewModel) {
 
         LazyColumn(
             state = listState,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 8.dp)
         ) {
             items(filteredMessages) { message ->
                 ChatMessage(message, currentUserUid, viewModel)
@@ -139,7 +183,7 @@ fun ChatScene(viewModel: ChatViewModel) {
             listState.animateScrollToItem(chatMessages.size)
         }
 
-        // Campo de entrada y botón para enviar mensajes
+        // Input field and send button
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -149,6 +193,11 @@ fun ChatScene(viewModel: ChatViewModel) {
             TextField(
                 value = messageInput,
                 onValueChange = { messageInput = it },
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = Color.White,
+                    cursorColor = Color.Gray
+                ),
+                shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp)
@@ -160,9 +209,13 @@ fun ChatScene(viewModel: ChatViewModel) {
                     viewModel.listenForChatMessages(currentChatId)
                     messageInput = "" // Clear input field after sending message
                 },
-                modifier = Modifier.wrapContentWidth()
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6200EE)),
+                shape = RoundedCornerShape(50),
+                modifier = Modifier
+                    .height(50.dp)
+                    .padding(end = 4.dp)
             ) {
-                Text("Enviar")
+                Text("Enviar", color = Color.White)
             }
         }
 
@@ -172,6 +225,27 @@ fun ChatScene(viewModel: ChatViewModel) {
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.body1
         )
+    }
+    ConfirmActionDialog(
+        title = "Confirmar Acción",
+        message = "¿Estás seguro de que deseas confirmar el intercambio?",
+        onConfirm = {
+            viewModel.confirmExchange(currentChatId, "confirmed")
+            showConfetti = true // Mostrar la animación de confeti
+        },
+        onDismiss = {
+            showConfirmDialog = false
+        },
+        isVisible = showConfirmDialog
+    )
+
+    if (showConfetti) {
+        ConfettiAnimation(
+            animationResource = R.raw.confetti, // Asegúrate de tener este archivo en res/raw
+            repeatCount = 1
+        ) {
+            showConfetti = false // Detener la animación después de que termine
+        }
     }
 
     if (showCancelDialog) {
@@ -193,10 +267,13 @@ fun ChatScene(viewModel: ChatViewModel) {
                 Button(onClick = { showCancelDialog = false }) {
                     Text("Cancelar")
                 }
-            }
+            },
+            shape = RoundedCornerShape(16.dp),
+            backgroundColor = Color.White
         )
     }
 }
+
 
 @Composable
 fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatViewModel) {
@@ -206,8 +283,11 @@ fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatVie
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .background(if (isCurrentUser) Color.LightGray else Color(0xFF2F96D8), RoundedCornerShape(8.dp))
-            .padding(8.dp)
+            .background(
+                if (isCurrentUser) Color(0xFFE0E0E0) else Color(0xFFBBDEFB),
+                RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp)
     ) {
         Text(
             text = message.text,
@@ -215,14 +295,14 @@ fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatVie
             textAlign = if (isCurrentUser) TextAlign.End else TextAlign.Start
         )
 
-        // Mostrar título e imagen si existen
         if (!message.imageUrl.isNullOrEmpty() && !message.title.isNullOrEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = message.title ?: "",
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = Color.White,
+                    color = if (isCurrentUser) Color.Black else Color.White,
                     textAlign = TextAlign.Center
                 )
             )
@@ -232,6 +312,8 @@ fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatVie
                 modifier = Modifier
                     .size(100.dp)
                     .align(Alignment.CenterHorizontally)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
             )
         }
 
@@ -268,11 +350,11 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
             Column(
                 modifier = Modifier
                     .width(120.dp)
-                    .height(200.dp) // Adjust the height to include the "View" button
-                    .background(if (isSelected) Color.Green else Color.Gray, RoundedCornerShape(8.dp))
-                    .padding(8.dp)
+                    .height(220.dp)
+                    .background(if (isSelected) Color.Green else Color.Gray, RoundedCornerShape(12.dp))
+                    .padding(12.dp)
                     .clickable(
-                        enabled = !isSelected // Disable clicking if the article is selected
+                        enabled = !isSelected
                     ) {
                         showConfirmationDialog = status != "selected"
                     }
@@ -288,18 +370,17 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = article.title ?: "Title",
+                    text = article.title ?: "Título",
                     style = MaterialTheme.typography.subtitle1.copy(color = Color.White),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                // "View" button outside the gray area
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 4.dp)
-                        .background(Color.Transparent), // Transparent background for "View"
+                        .background(Color.Transparent),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
@@ -330,8 +411,7 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
                                     status = "selected",
                                     selectedArticleId = article.id
                                 )
-                                // Send a message to the other user
-                                val messageText = "He seleccionado este artículo"
+                                val messageText = "El usuario ha seleccionado este artículo"
                                 val imageUrl = article.carrusel[0]
                                 val title = article.title
                                 viewModel.sendSelectedArticleMessage(
@@ -350,12 +430,15 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
                         Button(onClick = { showConfirmationDialog = false }) {
                             Text("Cancelar")
                         }
-                    }
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    backgroundColor = Color.White
                 )
             }
         }
     }
 }
+
 @Composable
 fun BackIcon(
     onClick: () -> Unit,
@@ -368,3 +451,92 @@ fun BackIcon(
         )
     }
 }
+@Composable
+fun ConfirmActionDialog(
+    title: String,
+    message: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    isVisible: Boolean,
+    confirmButtonText: String = "Confirmar",
+    dismissButtonText: String = "Cancelar"
+) {
+    if (isVisible) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(text = title) },
+            text = { Text(text = message) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onConfirm()
+                        onDismiss()
+                    },
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50)),
+                    shape = RoundedCornerShape(50),
+                ) {
+                    Text(confirmButtonText, color = Color.White)
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFF5252)),
+                    shape = RoundedCornerShape(50),
+                ) {
+                    Text(dismissButtonText, color = Color.White)
+                }
+            },
+            shape = RoundedCornerShape(16.dp),
+            backgroundColor = Color.White
+        )
+    }
+}
+@Composable
+fun ConfettiAnimation(
+    modifier: Modifier = Modifier,
+    animationResource: Int,
+    repeatCount: Int = LottieDrawable.INFINITE,
+    onAnimationEnd: () -> Unit = {}
+) {
+    var isAnimationFinished by remember { mutableStateOf(false) }
+
+    AndroidView(
+        factory = { context ->
+            LottieAnimationView(context).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                setAnimation(animationResource)
+                this.repeatCount = repeatCount
+                playAnimation()
+                addAnimatorListener(object : Animator.AnimatorListener {
+                    override fun onAnimationStart(animation: Animator) {
+                        // Implementa lo que deseas hacer al inicio de la animación
+                    }
+
+                    override fun onAnimationEnd(animation: Animator) {
+                        isAnimationFinished = true
+                        onAnimationEnd()
+                    }
+
+                    override fun onAnimationCancel(animation: Animator) {
+                        // Implementa lo que deseas hacer si la animación se cancela
+                    }
+
+                    override fun onAnimationRepeat(animation: Animator) {
+                        // Implementa lo que deseas hacer si la animación se repite
+                    }
+                })
+            }
+        },
+        modifier = modifier,
+        update = { view ->
+            if (isAnimationFinished) {
+                view.pauseAnimation()
+            }
+        }
+    )
+}
+

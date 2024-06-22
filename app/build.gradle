@@ -117,6 +117,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage-ktx:20.0.0'
     //implementation 'com.google.firebase:firebase-messaging-ktx:23.0.2'
 
+    implementation("com.airbnb.android:lottie:6.0.0")
 
     //Camerax
 
