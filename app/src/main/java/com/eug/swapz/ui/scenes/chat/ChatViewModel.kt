@@ -49,7 +49,8 @@ class ChatViewModel(
     val otherUserName: LiveData<String?> = _otherUserName
     private val _articles = MutableLiveData<List<Article>>()
     val articles: LiveData<List<Article>> = _articles
-    var senderUserId = ""
+    private val _status = MutableLiveData<String>()
+    var status: LiveData<String> = _status
 
     fun listenForChatMessages(currentChatId: String) {
         Log.d("ChatViewModel", "Listening to chat ID: $currentChatId")
@@ -65,6 +66,7 @@ class ChatViewModel(
                     val title = messageSnapshot.child("title").getValue(String::class.java)
                     val timestamp = messageSnapshot.child("timestamp").getValue(Long::class.java) ?: 0L
                     val isInventory = messageSnapshot.child("isInventory").getValue(Boolean::class.java) ?: false
+
 
                     val chatMessage = ChatMessage(senderId, text, imageUrl, title, timestamp, isInventory)
                     messages.add(chatMessage)
@@ -135,6 +137,35 @@ class ChatViewModel(
             }
         }
     }
+    fun sendSelectedArticleMessage(
+        senderId: String,
+        text: String,
+        imageUrl: String?,
+        title: String?,
+    ) {
+        viewModelScope.launch {
+            try {
+                val messagesReference = databaseReference.child(node).child("messages")
+                val messageData = mapOf(
+                    "senderId" to senderId,
+                    "text" to text,
+                    "imageUrl" to imageUrl,
+                    "title" to title
+                )
+                val messageId = messagesReference.push().key ?: return@launch
+                messagesReference.child(messageId).setValue(messageData)
+                    .addOnSuccessListener {
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("ChatViewModel", "Error sending message", e)
+
+                    }
+            } catch (e: Exception) {
+                Log.e("ChatViewModel", "Exception occurred while sending message", e)
+            }
+        }
+    }
+
 
     fun cleanupChatMessagesListener() {
         // Remove the listener for chat messages here
@@ -210,6 +241,39 @@ class ChatViewModel(
         }
         navigateToChatList()
     }
+    // ChatViewModel.kt
+
+    fun listenForChatStatus(chatId: String) {
+        val chatRef = databaseReference.child(chatId)
+        chatRef.child("status").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                _status.value = snapshot.getValue(String::class.java) ?: ""
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("ChatViewModel", "Error listening for chat status", error.toException())
+            }
+        })
+    }
+
+    fun updateChatStatus(chatId: String, status: String, selectedArticleId: String? = null) {
+        val chatRef = FirebaseDatabase.getInstance().getReference("chats").child(chatId)
+        val updates = mapOf(
+            "status" to status,
+            "selectedArticleId" to selectedArticleId
+        )
+
+        chatRef.updateChildren(updates)
+            .addOnSuccessListener {
+                Log.d("ChatViewModel", "Chat status updated to $status")
+            }
+            .addOnFailureListener { e ->
+                Log.e("ChatViewModel", "Error updating chat status", e)
+            }
+    }
+
+
+
     fun navigateToChatList() {
         viewModelScope.launch {
             navController.navigate(AppRoutes.CHAT_LIST.value)

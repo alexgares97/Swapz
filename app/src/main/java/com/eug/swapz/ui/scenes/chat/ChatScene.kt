@@ -62,6 +62,8 @@ fun ChatScene(viewModel: ChatViewModel) {
         Log.d("ChatScene", "Listening for chat messages")
         viewModel.updateOtherUserDetails(currentChatId, currentUserUid)
         viewModel.listenForChatMessages(currentChatId)
+        viewModel.listenForChatStatus(currentChatId) // Add this line
+
         onDispose {
             viewModel.cleanupChatMessagesListener()
         }
@@ -130,6 +132,11 @@ fun ChatScene(viewModel: ChatViewModel) {
             items(filteredMessages) { message ->
                 ChatMessage(message, currentUserUid, viewModel)
             }
+        }
+
+        LaunchedEffect(chatMessages.size) {
+            // Scroll to the bottom when the messages list changes
+            listState.animateScrollToItem(chatMessages.size)
         }
 
         // Campo de entrada y botón para enviar mensajes
@@ -242,9 +249,14 @@ fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatVie
     }
 }
 
-
 @Composable
 fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
+    var selectedArticleId by remember { mutableStateOf<String?>(null) }
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+    val status by viewModel.status.observeAsState("")
+    val currentChatId = viewModel.node
+    val currentUserUid = viewModel.getCurrentUserId() ?: return
+
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -252,16 +264,22 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(inventory) { article ->
+            val isSelected = selectedArticleId == article.id || status == "selected"
             Column(
                 modifier = Modifier
                     .width(120.dp)
-                    .height(180.dp) // Aumentar la altura para incluir el botón "Ver"
-                    .background(Color.Gray, RoundedCornerShape(8.dp))
+                    .height(200.dp) // Adjust the height to include the "View" button
+                    .background(if (isSelected) Color.Green else Color.Gray, RoundedCornerShape(8.dp))
                     .padding(8.dp)
+                    .clickable(
+                        enabled = !isSelected // Disable clicking if the article is selected
+                    ) {
+                        showConfirmationDialog = status != "selected"
+                    }
             ) {
                 Image(
                     painter = rememberAsyncImagePainter(article.carrusel[0]),
-                    contentDescription = "Imagen del artículo",
+                    contentDescription = "Article Image",
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(80.dp)
@@ -270,30 +288,74 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = article.title ?: "Título",
+                    text = article.title ?: "Title",
                     style = MaterialTheme.typography.subtitle1.copy(color = Color.White),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Ver",
+                Spacer(modifier = Modifier.height(4.dp))
+                // "View" button outside the gray area
+                Row(
                     modifier = Modifier
-                        .clickable {
-                            viewModel.navigateToDetail(article)
-                        }
-                        .align(Alignment.CenterHorizontally)
-                        .padding(vertical = 4.dp),
-                    style = MaterialTheme.typography.button.copy(
-                        color = Color.Blue,
-                        textAlign = TextAlign.Center
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                        .background(Color.Transparent), // Transparent background for "View"
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Ver",
+                        modifier = Modifier
+                            .clickable {
+                                viewModel.navigateToDetail(article)
+                            }
+                            .padding(4.dp),
+                        style = MaterialTheme.typography.button.copy(
+                            color = Color.Blue,
+                            textAlign = TextAlign.Center
+                        )
                     )
+                }
+            }
+            if (showConfirmationDialog) {
+                AlertDialog(
+                    onDismissRequest = { showConfirmationDialog = false },
+                    title = { Text(text = "Confirmar Selección") },
+                    text = { Text(text = "¿Deseas seleccionar el artículo ${article.title}? No podrás volver a seleccionar otro") },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                selectedArticleId = article.id
+                                viewModel.updateChatStatus(
+                                    chatId = currentChatId,
+                                    status = "selected",
+                                    selectedArticleId = article.id
+                                )
+                                // Send a message to the other user
+                                val messageText = "He seleccionado este artículo"
+                                val imageUrl = article.carrusel[0]
+                                val title = article.title
+                                viewModel.sendSelectedArticleMessage(
+                                    senderId = currentUserUid,
+                                    text = messageText,
+                                    imageUrl = imageUrl,
+                                    title = title
+                                )
+                                showConfirmationDialog = false
+                            }
+                        ) {
+                            Text("Confirmar")
+                        }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showConfirmationDialog = false }) {
+                            Text("Cancelar")
+                        }
+                    }
                 )
             }
         }
     }
 }
-
 @Composable
 fun BackIcon(
     onClick: () -> Unit,
@@ -306,8 +368,3 @@ fun BackIcon(
         )
     }
 }
-
-
-
-
-
