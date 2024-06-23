@@ -125,7 +125,7 @@ fun ChatScene(viewModel: ChatViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Show Confirm button if the status is selected
-            if (status == "selected" &&  currentUserUid == requestor ) {
+            if (status == "selected" &&  currentUserUid != requestor ) {
                 viewModel.listenForChatStatus(currentChatId)
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -174,24 +174,15 @@ fun ChatScene(viewModel: ChatViewModel) {
         }
 
         // Filter messages before rendering
-        val filteredMessages = remember(chatMessages, currentUserUid) {
-            chatMessages.filterNot { message ->
-                message.isInventory && message.senderId == currentUserUid
-            }
-        }
 
         LazyColumn(
             state = listState,
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 8.dp)
-
+            modifier = Modifier.weight(1f)
         ) {
-            items(filteredMessages) { message ->
+            items(chatMessages) { message ->
                 ChatMessage(message, currentUserUid, viewModel)
             }
         }
-
         LaunchedEffect(chatMessages.size) {
             // Scroll to the bottom when the messages list changes
             listState.animateScrollToItem(chatMessages.size)
@@ -253,7 +244,7 @@ fun ChatScene(viewModel: ChatViewModel) {
                         viewModel.listenForChatMessages(currentChatId)
                         viewModel.listenForChatStatus(currentChatId)
                         showConfirmDialog = false
-                        }
+                    }
                 ){
                     Text("Confirmar")
                 }
@@ -353,6 +344,7 @@ fun ChatScene(viewModel: ChatViewModel) {
             backgroundColor = Color.White
         )
     }
+
 }
 @Composable
 fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatViewModel) {
@@ -395,9 +387,7 @@ fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatVie
                 contentScale = ContentScale.Crop
             )
         }
-
-        // Mostrar inventario si `isInventory` es true y no es el mensaje del usuario actual
-        if (message.isInventory && !isCurrentUser) {
+        if (message.isInventory) {
             LaunchedEffect(message.senderId) {
                 viewModel.getUserArticles(message.senderId)
             }
@@ -486,7 +476,6 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
             }
         }
     }
-
     if (showConfirmationDialog && selectedArticleToConfirm != null) {
         AlertDialog(
             onDismissRequest = { showConfirmationDialog = false },

@@ -37,16 +37,14 @@ class ChatListViewModel(
             fetchChatList()
         }
     }
-    private suspend fun fetchChatList() {
+    suspend fun fetchChatList() {
         userId?.let { userId ->
             val chatList = fetchChatListFromFirebase(userId)
             _chatList.postValue(chatList)
             Log.d(TAG, "fetchChatList: $chatList")
         }
     }
-    suspend fun updateChatList() {
-        fetchChatList()
-    }
+
     private suspend fun fetchChatListFromFirebase(userId: String): List<Chat> {
         return suspendCancellableCoroutine { continuation ->
             val databaseReference = FirebaseDatabase.getInstance().getReference("chats")

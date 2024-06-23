@@ -58,11 +58,10 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 @Composable
 fun ChatList(viewModel: ChatListViewModel) {
+
+
     val chatListState = viewModel.chatList.observeAsState(emptyList())
-    LaunchedEffect(Unit) {
-        // Llama al método de actualización de la lista de chats en el ViewModel
-        viewModel.updateChatList()
-    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Spacer(modifier = Modifier.height(16.dp))
         Text(
