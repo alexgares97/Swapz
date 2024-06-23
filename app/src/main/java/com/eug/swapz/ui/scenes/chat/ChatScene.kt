@@ -249,6 +249,7 @@ fun ChatScene(viewModel: ChatViewModel) {
                 Button(
                     onClick = {
                         viewModel.updateChatStatus(currentChatId, "confirmed")
+                        viewModel.sendMessage("Confirmo el intercambio")
                         showConfirmDialog = false
                         }
                 ){
@@ -496,7 +497,7 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
                                 status = "selected",
                                 selectedArticleId = article.id
                             )
-                            val messageText = "Ha sido seleccionado este artículo"
+                            val messageText = "He seleccionado:"
                             val imageUrl = article.carrusel[0]
                             val title = article.title
                             viewModel.sendSelectedArticleMessage(

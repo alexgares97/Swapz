@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import androidx.compose.ui.text.style.TextOverflow
+import com.eug.swapz.ui.scenes.main.NavigationItem
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -188,60 +189,49 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                 }
                 Row(
                     modifier = Modifier
-                        .width(390.dp)
-                        .height(40.dp) // Ajusta la altura para mayor presencia visual
+                        .fillMaxWidth()
+                        .height(45.dp)
                         .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
                         .background(
                             brush = Brush.verticalGradient(
-                                colors = listOf(Color(0xFF2F96D8), Color(0xFF1A73E8))
+                                colors = listOf(Color(0xFF2F96D8).copy(alpha = 0.9f), Color(0xFF1A73E8).copy(alpha = 0.9f))
                             )
                         )
-                        .shadow(8.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) // Sombra para mayor realismo
-                        .padding(horizontal = 24.dp)
+                        .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                         .align(Alignment.BottomCenter),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = { viewModel.home() }) {
-                        Icon(
-                            Icons.Filled.Home,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp) // Ajusta el tamaño del ícono
-                        )
-                    }
-                    IconButton(onClick = { viewModel.navigateToChatList() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Chat,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    IconButton(onClick = { viewModel.navigateToAddArticle() }) {
-                        Icon(
-                            Icons.Filled.AddBox,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
-                    IconButton(onClick = { viewModel.navigateToInventory() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Person,
-                            contentDescription = "Profile",
-                            modifier = Modifier.size(24.dp),
-                            tint = Color.White
-                        )
-                    }
-                    IconButton(onClick = { viewModel.signOut() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                    NavigationItem(
+                        icon = Icons.Filled.Home,
+                        label = "Inicio",
+                        onClick = { viewModel.navigateToMain() },
+                        iconSize = 24.dp
+                    )
+                    NavigationItem(
+                        icon = Icons.AutoMirrored.Filled.Chat,
+                        label = "Chats",
+                        onClick = { viewModel.navigateToChatList() },
+                        iconSize = 24.dp
+                    )
+                    NavigationItem(
+                        icon = Icons.Filled.AddBox,
+                        label = "Subir",
+                        onClick = { viewModel.navigateToAddArticle() },
+                        iconSize = 29.dp
+                    )
+                    NavigationItem(
+                        icon = Icons.Filled.Person,
+                        label = "Inventario",
+                        onClick = { viewModel.navigateToInventory() },
+                        iconSize = 24.dp
+                    )
+                    NavigationItem(
+                        icon = Icons.AutoMirrored.Filled.ExitToApp,
+                        label = "Salir",
+                        onClick = { viewModel.signOut() },
+                        iconSize = 24.dp
+                    )
                 }
             }
             if (showConfirmationDialog) {

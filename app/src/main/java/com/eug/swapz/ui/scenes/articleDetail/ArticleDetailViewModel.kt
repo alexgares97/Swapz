@@ -88,6 +88,11 @@ class ArticleDetailViewModel(
             navController.navigate("${AppRoutes.PROFILE.value}/$userId")
         }
     }
+    fun navigateToMain(){
+        viewModelScope.launch {
+            navController.navigate(AppRoutes.MAIN.value)
+        }
+    }
     fun startExchange(userId: String, article: Article) {
         val currentUserUid = getCurrentUserId() ?: run {
             Log.e("ArticleDetailViewModel", "Current user ID is null")
@@ -97,7 +102,7 @@ class ArticleDetailViewModel(
         val articleId = article.id
         val title = article.title
         val initialMessage = "¡Hola! Me interesaría intercambiar este artículo"
-        val additionalMessage = "Viendo inventario del solicitante, selecciona uno o más artículos"
+        val additionalMessage = "Este es mi inventario,puedes seleccionar uno o más artículos"
 
         val chatsRef = FirebaseDatabase.getInstance().getReference("chats")
         val chatId = if (currentUserUid < userId) {
