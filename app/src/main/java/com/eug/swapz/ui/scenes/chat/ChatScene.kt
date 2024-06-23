@@ -159,6 +159,9 @@ fun ChatScene(viewModel: ChatViewModel) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
+                        viewModel.updateChatStatus(currentChatId, "finalized")
+                        viewModel.sendMessage("El intercambio ha finalizado con éxito")
+                       // viewModel.hideArticle(article.id)
                         showFinalizeDialog = true
                     },
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50)),
@@ -171,10 +174,11 @@ fun ChatScene(viewModel: ChatViewModel) {
                 }
                 Button(
                     onClick = {
-                        viewModel.updateChatStatus(currentChatId, "finalized")
+                        viewModel.updateChatStatus(currentChatId, "cancelled")
+                        viewModel.sendMessage("El intercambio ha sido cancelado")
                         viewModel.listenForChatStatus(currentChatId)
                     },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50)),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFFFF5252)),
                     shape = RoundedCornerShape(50),
                     modifier = Modifier
                         .padding(8.dp)
@@ -182,6 +186,9 @@ fun ChatScene(viewModel: ChatViewModel) {
                 ) {
                     Text("Rechazar", color = Color.White)
                 }
+            }
+            if (status == "finalized") {
+                showConfetti = true
             }
         }
         LazyColumn(
