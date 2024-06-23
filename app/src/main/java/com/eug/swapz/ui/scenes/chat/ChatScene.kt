@@ -250,6 +250,8 @@ fun ChatScene(viewModel: ChatViewModel) {
                     onClick = {
                         viewModel.updateChatStatus(currentChatId, "confirmed")
                         viewModel.sendMessage("Confirmo el intercambio")
+                        viewModel.listenForChatMessages(currentChatId)
+                        viewModel.listenForChatStatus(currentChatId)
                         showConfirmDialog = false
                         }
                 ){
@@ -275,6 +277,8 @@ fun ChatScene(viewModel: ChatViewModel) {
                     onClick = {
                         viewModel.updateChatStatus(currentChatId, "rejected")
                         viewModel.sendMessageRejected(currentUserUid)
+                        viewModel.listenForChatMessages(currentChatId)
+                        viewModel.listenForChatStatus(currentChatId)
                         showRejectDialog = false
                     }
                 ) {
@@ -299,6 +303,7 @@ fun ChatScene(viewModel: ChatViewModel) {
                 Button(
                     onClick = {
                         viewModel.updateChatStatus(currentChatId, "finalized")
+                        viewModel.listenForChatStatus(currentChatId)
                         showFinalizeDialog = false
                         showFinalizedMessage = true
                     }
@@ -508,6 +513,8 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
                             )
                         }
                         showConfirmationDialog = false
+                        viewModel.listenForChatStatus(currentChatId)
+                        viewModel.listenForChatMessages(currentChatId)
                     }
                 ) {
                     Text("Confirmar")
