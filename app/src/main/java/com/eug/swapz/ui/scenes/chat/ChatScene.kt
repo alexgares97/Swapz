@@ -125,7 +125,7 @@ fun ChatScene(viewModel: ChatViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Show Confirm button if the status is selected
-            if (status == "selected" &&  currentUserUid != requestor ) {
+            if (status == "selected" && currentUserUid != requestor) {
                 viewModel.listenForChatStatus(currentChatId)
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -155,8 +155,7 @@ fun ChatScene(viewModel: ChatViewModel) {
                 ) {
                     Text("Rechazar", color = Color.White)
                 }
-            }
-            else if (status == "confirmed" && currentUserUid == requestor){
+            } else if (status == "confirmed" && currentUserUid == requestor) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
@@ -170,11 +169,21 @@ fun ChatScene(viewModel: ChatViewModel) {
                 ) {
                     Text("Confirmar", color = Color.White)
                 }
+                Button(
+                    onClick = {
+                        viewModel.updateChatStatus(currentChatId, "finalized")
+                        viewModel.listenForChatStatus(currentChatId)
+                    },
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50)),
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .height(50.dp)
+                ) {
+                    Text("Rechazar", color = Color.White)
+                }
             }
         }
-
-        // Filter messages before rendering
-
         LazyColumn(
             state = listState,
             modifier = Modifier.weight(1f)
@@ -408,6 +417,8 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
     val status by viewModel.status.observeAsState("")
     val currentChatId = viewModel.node
     val currentUserUid = viewModel.getCurrentUserId() ?: return
+    val requestor by viewModel.requestorId.observeAsState("")
+
     LaunchedEffect(currentChatId) {
         viewModel.listenForChatMessages(currentChatId)
         viewModel.listenForChatStatus(currentChatId)
@@ -428,9 +439,9 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
                     .background(if (isSelected) Color.Green else Color.Gray, RoundedCornerShape(12.dp))
                     .padding(20.dp)
                     .clickable(
-                        enabled = !isSelected
+                        enabled = !isSelected && currentUserUid != requestor // Solo habilitar clic si no está seleccionado y currentUserUid no es el requestor
                     ) {
-                        if (status == "requested" || status == "rejected") {
+                        if ((status == "requested" || status == "rejected") && currentUserUid != requestor) {
                             selectedArticleToConfirm = article
                             showConfirmationDialog = true
                         }
