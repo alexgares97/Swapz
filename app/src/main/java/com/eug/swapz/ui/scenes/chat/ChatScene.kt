@@ -75,16 +75,13 @@ fun ChatScene(viewModel: ChatViewModel) {
     var showRejectDialog by remember { mutableStateOf(false) }
     val otherUserUid by viewModel.otherUserId.observeAsState("")
 
-    DisposableEffect(currentChatId) {
+    LaunchedEffect(currentChatId) {
         Log.d("ChatScene", "Listening for chat messages and status")
         viewModel.updateOtherUserDetails(currentChatId, currentUserUid)
         viewModel.listenForChatMessages(currentChatId)
         viewModel.listenForChatStatus(currentChatId)
         viewModel.getRequestorId(currentChatId)
-        onDispose {
-            viewModel.cleanupChatMessagesListener()
-            //viewModel.cleanupChatStatusListener()
-        }
+
     }
     Column(modifier = Modifier
         .fillMaxSize()
@@ -415,17 +412,19 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
     val status by viewModel.status.observeAsState("")
     val currentChatId = viewModel.node
     val currentUserUid = viewModel.getCurrentUserId() ?: return
-
-    viewModel.listenForChatMessages(currentChatId)
-    viewModel.listenForChatStatus(currentChatId)
+    LaunchedEffect(currentChatId) {
+        viewModel.listenForChatMessages(currentChatId)
+        viewModel.listenForChatStatus(currentChatId)
+    }
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp) // Provide space between items
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(inventory) { article ->
-            val isSelected = selectedArticleIds.contains(article.id) || status == "selected" || status == "confirmed" || status == "finalized"
+            val isSelected = selectedArticleIds.contains(article.id)
+
             Column(
                 modifier = Modifier
                     .width(120.dp)
@@ -481,6 +480,7 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
             }
         }
     }
+
     if (showConfirmationDialog && selectedArticleToConfirm != null) {
         AlertDialog(
             onDismissRequest = { showConfirmationDialog = false },
@@ -490,7 +490,7 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
                 Button(
                     onClick = {
                         selectedArticleToConfirm?.let { article ->
-                            selectedArticleIds = selectedArticleIds.plus(article.id?:"")
+                            selectedArticleIds = selectedArticleIds.plus(article.id ?: "")
                             viewModel.updateChatStatus(
                                 chatId = currentChatId,
                                 status = "selected",
@@ -522,6 +522,7 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
         )
     }
 }
+
 @Composable
 fun BackIcon(
     onClick: () -> Unit,
