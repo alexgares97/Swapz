@@ -1,4 +1,5 @@
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,7 +17,11 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,7 +40,23 @@ import coil.compose.rememberAsyncImagePainter
 import com.eug.swapz.R
 import com.eug.swapz.models.Chat
 import com.eug.swapz.ui.scenes.chatList.ChatListViewModel
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.launch
 
+import kotlin.math.roundToInt
 @Composable
 fun ChatList(viewModel: ChatListViewModel) {
     val chatListState = viewModel.chatList.observeAsState(emptyList())
@@ -63,7 +84,7 @@ fun ChatList(viewModel: ChatListViewModel) {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(chatListState.value) { chat ->
-                        ChatListItem(chat = chat) {
+                        ChatListItem(chat = chat, viewModel = viewModel) {
                             viewModel.navigateToChat(chat.id, chat.otherUserId)
                         }
                     }
@@ -187,29 +208,93 @@ fun BottomNavigationItem(icon: ImageVector, label: String, onClick: () -> Unit, 
 
 
 @Composable
-fun ChatListItem(chat: Chat, onClick: () -> Unit) {
-    Card(
+fun ChatListItem(chat: Chat, viewModel: ChatListViewModel, onClick: () -> Unit) {
+    var offsetX by remember { mutableStateOf(0f) }
+    var showCancelDialog by remember { mutableStateOf(false) }
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = 4.dp,
-        shape = RoundedCornerShape(8.dp)
+            .background(Color.Transparent)
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures { _, dragAmount ->
+                    offsetX = (offsetX + dragAmount).coerceIn(-300f, 0f)
+                }
+            }
     ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = rememberAsyncImagePainter(chat.photoUrl),
-                contentDescription = "User Icon",
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(RoundedCornerShape(25.dp)),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = chat.name, style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold))
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = chat.text, style = MaterialTheme.typography.body2, color = Color.Gray)
+        // Background with delete icon on the right
+        Box(
+            modifier = Modifier
+                .matchParentSize() // This ensures the Box takes the size of its parent, matching the height of the chat item
+                .background(if (offsetX < -10f) Color.Red else Color.Transparent)
+                .padding(start = 16.dp, end = 16.dp),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            if (offsetX < -10f) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete Icon",
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .alpha((-offsetX / 300f).coerceIn(0f, 1f))
+                        .clickable {
+                            showCancelDialog = true
+                        }
+                )
             }
         }
+
+        // Chat item content
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset { IntOffset(offsetX.roundToInt(), 0) } // Adjust to let the delete icon show up
+                .clickable(onClick = onClick),
+            elevation = 4.dp,
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = rememberAsyncImagePainter(chat.photoUrl),
+                    contentDescription = "User Icon",
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(25.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(text = chat.name, style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = chat.text, style = MaterialTheme.typography.body2, color = Color.Gray)
+                }
+            }
+        }
+    }
+
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text(text = "Confirmar Cancelación") },
+            text = { Text(text = "¿Estás seguro de que deseas cancelar el chat?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.cancelExchange(chat.id)
+                        showCancelDialog = false
+                    }
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showCancelDialog = false }) {
+                    Text("Cancelar")
+                }
+            },
+            shape = RoundedCornerShape(16.dp),
+            backgroundColor = Color.White
+        )
     }
 }

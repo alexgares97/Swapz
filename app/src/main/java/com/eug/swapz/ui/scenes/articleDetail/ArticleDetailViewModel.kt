@@ -97,7 +97,7 @@ class ArticleDetailViewModel(
         val articleId = article.id
         val title = article.title
         val initialMessage = "¡Hola! Me interesaría intercambiar este artículo"
-        val additionalMessage = "Por favor selecciona un artículo"
+        val additionalMessage = "Viendo inventario del solicitante, selecciona uno o más artículos"
 
         val chatsRef = FirebaseDatabase.getInstance().getReference("chats")
         val chatId = if (currentUserUid < userId) {

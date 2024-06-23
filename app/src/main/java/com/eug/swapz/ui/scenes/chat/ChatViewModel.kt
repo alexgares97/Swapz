@@ -53,6 +53,8 @@ class ChatViewModel(
     var status: LiveData<String> = _status
     private val _requestorId = MutableLiveData<String>()
     var requestorId: LiveData<String> = _requestorId
+    private val _otherUserId = MutableLiveData<String?>()
+    val otherUserId: LiveData<String?> = _otherUserId
 
     fun listenForChatMessages(currentChatId: String) {
         Log.d("ChatViewModel", "Listening to chat ID: $currentChatId")
@@ -167,8 +169,67 @@ class ChatViewModel(
             }
         }
     }
+    fun sendMessageRejected(senderId: String) {
+        // Mensajes de rechazo
+        val message1 = "¡El intercambio ha sido rechazado! Escoge mejor los artículos"
+        val message2 = "¡Has rechazado el intercambio!"
 
+        // Referencia a la base de datos para el inventario del usuario
+        val inventoryRef = FirebaseDatabase.getInstance().getReference("users")
+            .child(senderId).child("inventory")
 
+        inventoryRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(inventorySnapshot: DataSnapshot) {
+                val inventoryItems = mutableListOf<Map<String, String>>()
+
+                // Iterar sobre los hijos del snapshot para obtener los elementos de inventario
+                for (itemSnapshot in inventorySnapshot.children) {
+                    val item = itemSnapshot.getValue(Map::class.java) as? Map<String, String>
+                    item?.let { inventoryItems.add(it) }
+                }
+
+                // Referencia a la base de datos para mensajes
+                val messagesReference = databaseReference.child(node).child("messages")
+
+                // Enviar el primer mensaje
+                val messageId1 = messagesReference.push().key ?: return
+                val messageData1 = mapOf(
+                    "senderId" to senderId,
+                    "text" to message1,
+                    "isInventory" to true
+                )
+
+                messagesReference.child(messageId1).setValue(messageData1)
+                    .addOnSuccessListener {
+                        Log.d("ChatViewModel", "Primer mensaje de rechazo enviado correctamente")
+
+                        // Enviar el segundo mensaje después de que el primero se haya enviado
+                        val messageId2 = messagesReference.push().key ?: return@addOnSuccessListener
+                        val messageData2 = mapOf(
+                            "senderId" to senderId,
+                            "text" to message2,
+                            "isInventory" to false
+                        )
+
+                        messagesReference.child(messageId2).setValue(messageData2)
+                            .addOnSuccessListener {
+                                Log.d("ChatViewModel", "Segundo mensaje de rechazo enviado correctamente")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("ChatViewModel", "Error al enviar el segundo mensaje de rechazo", e)
+                            }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("ChatViewModel", "Error al enviar el primer mensaje de rechazo", e)
+                    }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Manejo de errores
+                Log.e("SendMessageRejected", "Database error", error.toException())
+            }
+        })
+    }
     fun cleanupChatMessagesListener() {
         // Remove the listener for chat messages here
         // For example, if you're using Firebase Realtime Database:
@@ -208,10 +269,12 @@ class ChatViewModel(
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val photoUrl = snapshot.child("photo").getValue(String::class.java)
                     val name = snapshot.child("name").getValue(String::class.java)
+                    val userId = snapshot.key
 
                     // Update the LiveData with the other user's photo URL
                     _otherUserPhotoUrl.value = photoUrl
                     _otherUserName.value = name
+                    _otherUserId.value = userId
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -230,20 +293,6 @@ class ChatViewModel(
     fun getCurrentUserId(): String? {
         return sessionDataSource.getCurrentUserId()
     }
-    fun cancelExchange(chatId: String) {
-        viewModelScope.launch {
-            // Logic to cancel the exchange and clean up the chat
-            // For example, you might delete the chat or remove the related messages
-            val chatsRef = FirebaseDatabase.getInstance().getReference("chats").child(chatId)
-            chatsRef.removeValue().addOnSuccessListener {
-                Log.d("ChatViewModel", "Exchange cancelled successfully")
-            }.addOnFailureListener { e ->
-                Log.e("ChatViewModel", "Error cancelling exchange", e)
-            }
-        }
-        navigateToChatList()
-    }
-    // ChatViewModel.kt
 
     fun listenForChatStatus(chatId: String) {
         val chatRef = databaseReference.child(chatId)
@@ -312,6 +361,12 @@ class ChatViewModel(
     fun navigateToChatList() {
         viewModelScope.launch {
             navController.navigate(AppRoutes.CHAT_LIST.value)
+        }
+    }
+    fun navigateToProfile(userId: String){
+        viewModelScope.launch {
+            Log.d("Navigating to Profile", "")
+            navController.navigate("${AppRoutes.PROFILE.value}/$userId")
         }
     }
     override fun onCleared() {
