@@ -125,8 +125,7 @@ fun ChatScene(viewModel: ChatViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Show Confirm button if the status is selected
-            if (status == "selected" && currentUserUid != requestor) {
-                viewModel.listenForChatStatus(currentChatId)
+            if (status == "selected" && currentUserUid == requestor) {
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Button(
@@ -155,7 +154,8 @@ fun ChatScene(viewModel: ChatViewModel) {
                 ) {
                     Text("Rechazar", color = Color.White)
                 }
-            } else if (status == "confirmed" && currentUserUid == requestor) {
+            }
+            if (status == "confirmed" && currentUserUid != requestor) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
@@ -397,10 +397,7 @@ fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatVie
             )
         }
         if (message.isInventory) {
-            LaunchedEffect(message.senderId) {
-                viewModel.getUserArticles(message.senderId)
-            }
-
+            viewModel.getUserArticles(message.senderId)
             val articles by viewModel.articles.observeAsState(emptyList())
             if (articles.isNotEmpty()) {
                 InventoryCarousel(inventory = articles, viewModel = viewModel)
