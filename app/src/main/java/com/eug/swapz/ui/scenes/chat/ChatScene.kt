@@ -156,7 +156,7 @@ fun ChatScene(viewModel: ChatViewModel) {
                     Text("Rechazar", color = Color.White)
                 }
             }
-            else if (status == "confirmed" && currentUserUid != requestor){
+            else if (status == "confirmed" && currentUserUid == requestor){
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
