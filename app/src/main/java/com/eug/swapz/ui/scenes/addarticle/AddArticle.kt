@@ -74,7 +74,7 @@ fun AddArticle(viewModel: AddArticleViewModel) {
     var valueError by remember { mutableStateOf(false) }
     var imageError by remember { mutableStateOf(false) }
 
-    val catOptions = listOf("Deportes", "Hogar", "Moda", "Otros")
+    val catOptions = listOf("Deportes", "Hogar", "Moda", "Tecnología", "Otros")
     val statusOptions = listOf("Usado", "Bueno", "Muy bueno", "Excelente", "Sin abrir")
     var expandedCat = remember { mutableStateOf(false) }
     var expandedStatus = remember { mutableStateOf(false) }

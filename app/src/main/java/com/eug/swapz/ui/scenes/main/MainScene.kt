@@ -60,6 +60,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -110,20 +111,17 @@ fun MainScene(viewModel: MainViewModel) {
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                         .padding(top = 55.dp)
-                        .padding(horizontal = 50.dp),
-                    horizontalArrangement = Arrangement.spacedBy(40.dp),
+                        .padding(horizontal = 16.dp), // Ajusta el padding horizontal para más espacio
+                    horizontalArrangement = Arrangement.SpaceEvenly // Usa SpaceEvenly para distribuir uniformemente
                 ) {
                     articlesByCategory.keys.forEach { category ->
                         val iconResourceId = getIconResourceIdForCategory(category ?: "")
                         Box(
                             modifier = Modifier
                                 .clickable {
-                                    viewModel.navigateToFilter(
-                                        category ?: ""
-                                    )
+                                    viewModel.navigateToFilter(category ?: "")
                                 }
-                                .wrapContentWidth()
-                                .padding(horizontal = 4.dp),
+                                .weight(1f), // Asegura que cada ítem ocupe el mismo ancho
                             contentAlignment = Alignment.Center
                         ) {
                             Column(
@@ -138,12 +136,15 @@ fun MainScene(viewModel: MainViewModel) {
                                 Text(
                                     text = category ?: "Unknown",
                                     style = TextStyle(fontSize = 12.sp),
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
                     }
                 }
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -184,7 +185,7 @@ fun MainScene(viewModel: MainViewModel) {
                                             ) {
                                                 Image(
                                                     painter = rememberAsyncImagePainter(
-                                                        article.carrusel?.get(0)
+                                                        article.carrusel[0]
                                                     ),
                                                     contentDescription = null,
                                                     modifier = Modifier
@@ -240,7 +241,7 @@ fun MainScene(viewModel: MainViewModel) {
                                     .clickable { viewModel.navigateToDetail(article) }
                             ) {
                                 Image(
-                                    painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
+                                    painter = rememberAsyncImagePainter(article.carrusel[0]),
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(200.dp)
@@ -366,6 +367,7 @@ fun getIconResourceIdForCategory(categoryName: String): Int {
         "Hogar" -> R.drawable.hogar
         "Deportes" -> R.drawable.atletismo
         "Moda" -> R.drawable.camisa
+        "Tecnología" -> R.drawable.tech
         "Otros" -> R.drawable.otros
         else -> R.drawable.otros
     }

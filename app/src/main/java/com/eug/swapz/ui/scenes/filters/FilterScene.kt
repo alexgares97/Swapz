@@ -68,7 +68,7 @@ fun FilterScene(viewModel: FilterViewModel) {
     val articles by viewModel.articles.observeAsState(emptyList())
     var searchText by remember { mutableStateOf(String()) }
     var filteredArticles by remember { mutableStateOf(emptyList<Article>()) }
-
+    var category = viewModel.category
     viewModel.fetch()
 
     DisposableEffect(searchText) {
@@ -88,8 +88,18 @@ fun FilterScene(viewModel: FilterViewModel) {
         }
     ) {
         Spacer(modifier = Modifier.height(20.dp))
+
         Box(modifier = Modifier.fillMaxSize())
         {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ){
+                Text(text = category, style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold), modifier = Modifier.padding(horizontal = 16.dp))
+
+            }
+
             if (filteredArticles.isEmpty()) {
 
                 LazyVerticalGrid(
@@ -105,7 +115,7 @@ fun FilterScene(viewModel: FilterViewModel) {
                                     .clickable { viewModel.navigateToDetail(article) }
                             ) {
                                 Image(
-                                    painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
+                                    painter = rememberAsyncImagePainter(article.carrusel[0]),
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(200.dp)
@@ -157,7 +167,7 @@ fun FilterScene(viewModel: FilterViewModel) {
                                     .clickable { viewModel.navigateToDetail(article) }
                             ) {
                                 Image(
-                                    painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
+                                    painter = rememberAsyncImagePainter(article.carrusel[0]),
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(200.dp)

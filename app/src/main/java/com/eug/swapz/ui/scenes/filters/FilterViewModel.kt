@@ -22,6 +22,9 @@ class FilterViewModel(
     private val _articles = MutableLiveData<List<Article>>()
     val articles: LiveData<List<Article>> = _articles
     private val currentUserId = sessionDataSource.getCurrentUserId()
+    val category = getCategoryFromRoute()
+
+
     fun fetch() {
         val category = getCategoryFromRoute()
         viewModelScope.launch {
