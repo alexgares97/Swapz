@@ -160,7 +160,7 @@ fun ChatScene(viewModel: ChatViewModel) {
                 Button(
                     onClick = {
                         viewModel.updateChatStatus(currentChatId, "finalized")
-                        viewModel.sendFinalMessage("El intercambio ha finalizado con éxito")
+                        viewModel.sendMessage("El intercambio ha finalizado con éxito")
                        // viewModel.hideArticle(article.id)
                         showFinalizeDialog = true
                     },
@@ -363,8 +363,6 @@ fun ChatScene(viewModel: ChatViewModel) {
 @Composable
 fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatViewModel) {
     val isCurrentUser = message.senderId == currentUserUid
-    var showConfetti by remember { mutableStateOf(false) }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -409,17 +407,7 @@ fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatVie
                 InventoryCarousel(inventory = articles, viewModel = viewModel)
             }
         }
-        if (message.isFinalize){
-            showConfetti = true
-        }
-    }
-    if (showConfetti) {
-        ConfettiAnimation(
-            animationResource = R.raw.confetti, // Asegúrate de tener este archivo en res/raw
-            repeatCount = 1
-        ) {
-            showConfetti = false // Detener la animación después de que termine
-        }
+
     }
 }
 
