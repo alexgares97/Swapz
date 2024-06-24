@@ -61,6 +61,8 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
     val hasStartedExchange by viewModel.hasStartedExchange.observeAsState(false)
     var showConfirmationDialog by remember { mutableStateOf(false) }
     var showCancelDialog by remember { mutableStateOf(false) }
+    val currentUserId = viewModel.getCurrentUserId()
+    val chatId = viewModel.getChatId(userId, currentUserId ?: "")
 
     viewModel.checkIfExchangeStarted(userId, article.id?:"")
     viewModel.fetchUserName(userId)
@@ -104,7 +106,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                             if (hasStartedExchange) {
                                 Button(
                                     onClick = {
-                                        showCancelDialog = true
+                                        viewModel.navigateToChat(chatId,userId)
                                     },
                                     modifier = Modifier
                                         .padding(end = 16.dp)
@@ -113,7 +115,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                     shape = RoundedCornerShape(12.dp)
                                 ) {
                                     Text(
-                                        text = "Finalizar",
+                                        text = "Chat",
                                         color = Color.White,
                                         fontSize = 14.sp
                                     )
@@ -204,36 +206,46 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    NavigationItem(
-                        icon = Icons.Filled.Home,
-                        label = "Inicio",
-                        onClick = { viewModel.navigateToMain() },
-                        iconSize = 24.dp
-                    )
-                    NavigationItem(
-                        icon = Icons.AutoMirrored.Filled.Chat,
-                        label = "Chats",
-                        onClick = { viewModel.navigateToChatList() },
-                        iconSize = 24.dp
-                    )
-                    NavigationItem(
-                        icon = Icons.Filled.AddCircle,
-                        label = "Añadir",
-                        onClick = { viewModel.navigateToAddArticle() },
-                        iconSize = 25.dp
-                    )
-                    NavigationItem(
-                        icon = Icons.Filled.Inventory,
-                        label = "Inventario",
-                        onClick = { viewModel.navigateToInventory() },
-                        iconSize = 24.dp
-                    )
-                    NavigationItem(
-                        icon = Icons.AutoMirrored.Filled.ExitToApp,
-                        label = "Salir",
-                        onClick = { viewModel.signOut() },
-                        iconSize = 24.dp
-                    )
+                    IconButton(onClick = { viewModel.home() }) {
+                        Icon(
+                            Icons.Filled.Home,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp) // Ajusta el tamaño del ícono
+                        )
+                    }
+                    IconButton(onClick = { viewModel.navigateToChatList() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Chat,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    IconButton(onClick = { viewModel.navigateToAddArticle() }) {
+                        Icon(
+                            Icons.Filled.AddBox,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                    IconButton(onClick = { viewModel.navigateToInventory() }) {
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = "Profile",
+                            modifier = Modifier.size(24.dp),
+                            tint = Color.White
+                        )
+                    }
+                    IconButton(onClick = { viewModel.signOut() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
             if (showConfirmationDialog) {
@@ -251,28 +263,6 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     },
                     dismissButton = {
                         Button(onClick = { showConfirmationDialog = false }) {
-                            Text("Cancelar")
-                        }
-                    }
-                )
-            }
-            if (showCancelDialog) {
-                AlertDialog(
-                    onDismissRequest = { showCancelDialog = false },
-                    title = { Text(text = "Confirmar cancelación") },
-                    text = {
-                            Text(text = "¿Estás seguro que deseas cancelar el intercambio de ${article.title}? Se eliminará la conversación")
-                           },
-                    confirmButton = {
-                        Button(onClick = {
-                            viewModel.cancelExchange(userId, article.id ?: "")
-                            showCancelDialog = false
-                        }) {
-                            Text("Confirmar")
-                        }
-                    },
-                    dismissButton = {
-                        Button(onClick = { showCancelDialog = false }) {
                             Text("Cancelar")
                         }
                     }

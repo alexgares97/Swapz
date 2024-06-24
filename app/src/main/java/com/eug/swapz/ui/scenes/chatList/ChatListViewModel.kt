@@ -37,7 +37,7 @@ class ChatListViewModel(
             fetchChatList()
         }
     }
-    suspend fun fetchChatList() {
+    private suspend fun fetchChatList() {
         userId?.let { userId ->
             val chatList = fetchChatListFromFirebase(userId)
             _chatList.postValue(chatList)

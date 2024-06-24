@@ -1,6 +1,7 @@
 package com.eug.swapz.ui.scenes.profile
 
 import android.content.ContentValues
+import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.LiveData
@@ -19,6 +20,7 @@ import com.google.firebase.database.ServerValue
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(
@@ -34,8 +36,8 @@ class ProfileViewModel(
     val otherUserPhoto: LiveData<String?> = _otherUserPhoto
     private val _otherUserName = MutableLiveData<String?>()
     val otherUserName: LiveData<String?> = _otherUserName
-    private val _hasStartedExchangeMap = MutableLiveData<Map<String, Boolean>>()
-    val hasStartedExchangeMap: LiveData<Map<String, Boolean>> = _hasStartedExchangeMap
+    private val _hasStartedExchangeMap = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val hasStartedExchangeMap: StateFlow<Map<String, Boolean>> = _hasStartedExchangeMap.asStateFlow()
     val currentUserUid = getCurrentUserId()
 
     fun setUserId(userId: String) {
@@ -172,71 +174,39 @@ class ProfileViewModel(
             }
         })
     }
-    fun checkIfExchangeStarted(userId: String, articleId: String) {
+    fun checkIfExchangeStarted(articleId: String) {
         val currentUserUid = getCurrentUserId() ?: return
-
         val chatsRef = FirebaseDatabase.getInstance().getReference("chats")
-        val chatId = if (currentUserUid < userId) {
-            "$currentUserUid-$userId"
-        } else {
-            "$userId-$currentUserUid"
-        }
-        val chatRef = chatsRef.child(chatId)
-
-        chatRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        chatsRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 var exchangeExists = false
+                val currentStatusMap = _hasStartedExchangeMap.value.toMutableMap()
                 for (childSnapshot in snapshot.children) {
-                    val childArticleId = childSnapshot.child("articleId").getValue(String::class.java)
-                    if (childArticleId == articleId) {
-                        exchangeExists = true
-                        break
+                    val chatId = childSnapshot.key ?: ""
+                    if (chatId.contains(currentUserUid)) {
+                        val participants = childSnapshot.child("participants").children.mapNotNull {
+                            it.getValue(String::class.java)
+                        }
+                        if (participants.contains(currentUserUid)) {
+                            val childArticleId =
+                                childSnapshot.child("articleId").getValue(String::class.java)
+                            if (childArticleId == articleId) {
+                                exchangeExists = true
+                                break
+                            }
+                        }
                     }
                 }
-                updateExchangeStatus(articleId, exchangeExists)
+                viewModelScope.launch {
+                    _hasStartedExchangeMap.emit(currentStatusMap + (articleId to exchangeExists))
+                }
             }
-
             override fun onCancelled(error: DatabaseError) {
                 Log.e("ProfileViewModel", "Database error", error.toException())
             }
         })
     }
 
-    fun cancelExchange(userId: String, articleId: String) {
-        val currentUserUid = getCurrentUserId() ?: return
-
-        val chatsRef = FirebaseDatabase.getInstance().getReference("chats")
-        val chatId = if (currentUserUid < userId) {
-            "$currentUserUid-$userId"
-        } else {
-            "$userId-$currentUserUid"
-        }
-
-        val chatRef = chatsRef.child(chatId)
-
-        chatRef.orderByChild("articleId").equalTo(articleId).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (child in snapshot.children) {
-                    child.ref.removeValue().addOnSuccessListener {
-                        updateExchangeStatus(articleId, false)
-                    }.addOnFailureListener { e ->
-                        Log.e("ProfileViewModel", "Error cancelling exchange", e)
-                    }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("ProfileViewModel", "Database error", error.toException())
-            }
-        })
-    }
-    private fun updateExchangeStatus(articleId: String, status: Boolean) {
-        val currentStatusMap = _hasStartedExchangeMap.value ?: emptyMap()
-        val updatedStatusMap = currentStatusMap.toMutableMap().apply {
-            put(articleId, status)
-        }
-        _hasStartedExchangeMap.postValue(updatedStatusMap)
-    }
     private fun getUserDetails() {
         val usersRef = FirebaseDatabase.getInstance().getReference("users").child(node)
         usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -258,6 +228,19 @@ class ProfileViewModel(
                 Log.e("ArticleDetailViewModel", "Database error", error.toException())
             }
         })
+    }
+    fun navigateToChat(chatId: String, otherUserId: String) {
+        viewModelScope.launch {
+            Log.d(TAG, "Navigating to exchange with user id: $otherUserId")
+            navController.navigate("${AppRoutes.CHAT.value}/$otherUserId/$chatId")
+        }
+    }
+    fun getChatId(userId1: String, userId2: String): String {
+        return if (userId1 < userId2) {
+            "$userId1-$userId2"
+        } else {
+            "$userId2-$userId1"
+        }
     }
     fun navigateToMain(){
         viewModelScope.launch {

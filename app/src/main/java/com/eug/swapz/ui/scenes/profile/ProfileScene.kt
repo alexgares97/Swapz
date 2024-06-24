@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -80,14 +81,14 @@ fun ProfileScene(viewModel: ProfileViewModel) {
     val name by viewModel.otherUserName.observeAsState("")
     val userId = viewModel.node
     val photo by viewModel.otherUserPhoto.observeAsState("")
-    var articleToExchange by remember { mutableStateOf<Article?>(null) }
-    var showDialog by remember { mutableStateOf(false) }
-    var showCancelDialog by remember { mutableStateOf(false) }
-    val hasStartedExchangeMap by viewModel.hasStartedExchangeMap.observeAsState(emptyMap())
+    val hasStartedExchangeMap by viewModel.hasStartedExchangeMap.collectAsState()
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+    val currentUserId = viewModel.getCurrentUserId()
 
     LaunchedEffect(Unit) {
         viewModel.fetch()
     }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -132,9 +133,7 @@ fun ProfileScene(viewModel: ProfileViewModel) {
                 modifier = Modifier.padding(16.dp)
             ) {
                 items(articles) { article ->
-                    LaunchedEffect(article.id) {
-                        viewModel.checkIfExchangeStarted(userId, article.id ?: "")
-                    }
+                    viewModel.checkIfExchangeStarted(article.id ?: "")
                     Column(
                         Modifier
                             .fillMaxWidth()
@@ -143,26 +142,22 @@ fun ProfileScene(viewModel: ProfileViewModel) {
                             .padding(8.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .clickable { viewModel.navigateToDetail(article) }
-                            .padding(8.dp) // Added padding for the card
+                            .padding(8.dp)
                     ) {
                         Image(
-                            painter = rememberAsyncImagePainter(article.carrusel?.get(0)),
+                            painter = rememberAsyncImagePainter(article.carrusel[0]),
                             contentDescription = null,
                             modifier = Modifier
                                 .height(120.dp)
                                 .fillMaxWidth()
                                 .align(Alignment.CenterHorizontally)
                                 .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop,
+                            contentScale = ContentScale.Crop
                         )
-                        val max_title_length = 19
-                        val max_desc_length = 55 // Define your maximum text length threshold
+                        val maxTitleLength = 19
+                        val maxDescLength = 55
                         Text(
-                            text = if (article.title.length <= max_title_length) {
-                                article.title
-                            } else {
-                                "${article.title.take(max_title_length)}..."
-                            },
+                            text = if (article.title.length <= maxTitleLength) article.title else "${article.title.take(maxTitleLength)}...",
                             style = TextStyle(
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
@@ -171,11 +166,9 @@ fun ProfileScene(viewModel: ProfileViewModel) {
                             maxLines = 1
                         )
                         Text(
-                            text = if (article.desc.length <= max_desc_length) article.desc
-                            else "${article.desc.take(max_desc_length)}...",
+                            text = if (article.desc.length <= maxDescLength) article.desc else "${article.desc.take(maxDescLength)}...",
                             style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Justify),
-                            modifier = Modifier
-                                .padding(vertical = 8.dp)
+                            modifier = Modifier.padding(vertical = 8.dp)
                         )
                         Text(
                             text = "Estado: ${article.status}",
@@ -197,105 +190,65 @@ fun ProfileScene(viewModel: ProfileViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             val hasStartedExchange = hasStartedExchangeMap[article.id] ?: false
+                            Log.d("ProfileScene", "Article ID: ${article.id}, hasStartedExchange: $hasStartedExchange")
+
                             if (hasStartedExchange) {
                                 Button(
                                     onClick = {
-                                        articleToExchange = article
-                                        showCancelDialog = true
+                                        val chatId = viewModel.getChatId(userId, currentUserId ?: "")
+                                        viewModel.navigateToChat(chatId, userId)
                                     },
                                     modifier = Modifier
                                         .padding(horizontal = 4.dp, vertical = 4.dp)
                                         .weight(1f),
-                                    colors = ButtonDefaults.buttonColors(backgroundColor=Color.Green),
+                                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Green),
                                     contentPadding = PaddingValues(
                                         vertical = 4.dp,
                                         horizontal = 8.dp
-                                    ) // Adjust padding for smaller button
+                                    )
                                 ) {
                                     Text(
-                                        text = "Finalizar",
+                                        text = "Chat",
                                         color = Color.White,
-                                        fontSize = 10.sp
-                                    ) // Smaller text
+                                        fontSize = 14.sp
+                                    )
                                 }
                             } else {
                                 Button(
-                                    onClick = {
-                                        articleToExchange = article
-                                        showDialog = true
-                                    },
+                                    onClick = { showConfirmationDialog = true },
                                     modifier = Modifier
                                         .padding(horizontal = 4.dp, vertical = 4.dp)
                                         .weight(1f),
-                                    colors = ButtonDefaults.buttonColors(
-                                        backgroundColor = Color(
-                                            0xFF2F96D8
-                                        )
-                                    ),
+                                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2F96D8)),
                                     contentPadding = PaddingValues(
                                         vertical = 4.dp,
                                         horizontal = 8.dp
-                                    ) // Adjust padding for smaller button
+                                    )
                                 ) {
                                     Text(
                                         text = "Intercambiar",
                                         color = Color.White,
                                         fontSize = 10.sp
-                                    ) // Smaller text
+                                    )
                                 }
                             }
                         }
                     }
-                    if (showDialog) {
+                    if (showConfirmationDialog) {
                         AlertDialog(
-                            onDismissRequest = {
-                                showDialog = false
-                                articleToExchange = null
-                            },
+                            onDismissRequest = { showConfirmationDialog = false },
                             title = { Text(text = "Confirmar solicitud") },
-                            text = { Text(text = "¿Estás seguro que deseas solicitar el intercambio de ${articleToExchange?.title}?") },
-                            confirmButton = {
-                                Button(
-                                    onClick = {
-                                        // Intercambiar
-                                        viewModel.startExchange(userId, article)
-                                        showDialog = false
-                                        articleToExchange = null
-                                    }
-                                ) {
-                                    Text(text = "Confirm")
-                                }
-                            },
-                            dismissButton = {
-                                Button(
-                                    onClick = {
-                                        showDialog = false
-                                        articleToExchange = null
-                                    }
-                                ) {
-                                    Text(text = "Cancelar")
-                                }
-                            }
-                        )
-                    }
-                    if (showCancelDialog) {
-                        AlertDialog(
-                            onDismissRequest = { showCancelDialog = false },
-                            title = { Text(text = "Confirmar cancelación") },
-                            text = {
-                                Text(text = "¿Estás seguro que deseas cancelar el intercambio de ${article.title}? Se eliminará la conversación")
-                            },
+                            text = { Text(text = "¿Estás seguro que deseas solicitar el intercambio de ${article.title}?") },
                             confirmButton = {
                                 Button(onClick = {
-                                    viewModel.cancelExchange(userId, article.id ?: "")
-                                    viewModel.checkIfExchangeStarted(userId, article.id ?: "")
-                                    showCancelDialog = false
+                                    viewModel.startExchange(userId, article)
+                                    showConfirmationDialog = false
                                 }) {
                                     Text("Confirmar")
                                 }
                             },
                             dismissButton = {
-                                Button(onClick = { showCancelDialog = false }) {
+                                Button(onClick = { showConfirmationDialog = false }) {
                                     Text("Cancelar")
                                 }
                             }
