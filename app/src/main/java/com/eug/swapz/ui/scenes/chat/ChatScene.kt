@@ -160,8 +160,7 @@ fun ChatScene(viewModel: ChatViewModel) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
-                        viewModel.updateChatStatus(currentChatId, "finalized")
-                        viewModel.sendMessage("El intercambio ha finalizado con éxito")
+
                        // viewModel.hideArticle(article.id)
                         showFinalizeDialog = true
                     },
@@ -308,7 +307,7 @@ fun ChatScene(viewModel: ChatViewModel) {
                 Button(
                     onClick = {
                         viewModel.updateChatStatus(currentChatId, "finalized")
-                        viewModel.listenForChatStatus(currentChatId)
+                        viewModel.sendMessage("El intercambio ha finalizado con éxito")
                         showFinalizeDialog = false
                         showFinalizedMessage = true
                     }
