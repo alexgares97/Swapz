@@ -141,6 +141,41 @@ class ChatViewModel(
             }
         }
     }
+    fun sendFinalMessage(message: String?) {
+        val currentUserUid = sessionDataSource.getCurrentUserId() ?: return
+
+        viewModelScope.launch {
+            try {
+                // Reference to the messages node
+                val messagesReference = databaseReference.child(node).child("messages")
+                // Generate a new message ID
+                val messageId = messagesReference.push().key ?: return@launch
+
+                // Prepare the message data
+                val messageData = mapOf(
+                    "senderId" to currentUserUid,
+                    "text" to message,
+                    "timestamp" to ServerValue.TIMESTAMP,
+                    "isInventory" to true
+                )
+                // Set the value for the new message
+                messagesReference.child(messageId).setValue(messageData)
+                    .addOnSuccessListener {
+                        // Message sent successfully
+                        Log.d("ChatViewModel", "Message sent successfully")
+                        // Log the original chatId for reference
+                        Log.d("ChatViewModel", "Original chatId: $node")
+                    }
+                    .addOnFailureListener { e ->
+                        // Error sending message
+                        Log.e("ChatViewModel", "Error sending message", e)
+                    }
+            } catch (e: Exception) {
+                // Exception occurred
+                Log.e("ChatViewModel", "Exception occurred while sending message", e)
+            }
+        }
+    }
     fun sendSelectedArticleMessage(
         senderId: String,
         text: String,

@@ -6,5 +6,6 @@ data class ChatMessage(
     var imageUrl: String? = "",
     var title: String? ="",
     var timestamp: Long = 0,
-    var isInventory: Boolean = false
+    var isInventory: Boolean = false,
+    var isFinalize: Boolean = false
 )
