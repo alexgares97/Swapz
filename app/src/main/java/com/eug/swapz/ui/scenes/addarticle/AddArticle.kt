@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -157,42 +158,60 @@ fun AddArticle(viewModel: AddArticleViewModel) {
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
-        Card(
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
             modifier = Modifier
-                .size(160.dp)
+                .fillMaxWidth()
                 .padding(8.dp),
-            shape = CircleShape,
-            colors = CardDefaults.cardColors(containerColor = Color.Gray),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            LazyRow(
-                modifier = Modifier.padding(vertical = 16.dp)
-            ) {
-                items(imageUrl.value) { imageUrl ->
-                    if (imageUrl.text.isNotBlank()) {
-                        Box(modifier = Modifier.size(100.dp)) {
+            for (i in 0 until 6) { // Seis placeholders en lugar de cinco
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .aspectRatio(1f),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Gray),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    val imageUrlToShow =
+                        imageUrl.value.getOrNull(i) // Obtener la URL de la imagen si existe
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        if (imageUrlToShow != null && imageUrlToShow.text.isNotBlank()) {
                             Image(
-                                painter = rememberAsyncImagePainter(imageUrl.text),
+                                painter = rememberAsyncImagePainter(imageUrlToShow.text),
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
-                                    .padding(4.dp)
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .border(2.dp, Color.Gray, RoundedCornerShape(16.dp)),
+                                contentScale = ContentScale.Crop // Escalar la imagen para que ocupe todo el espacio
                             )
                             IconButton(
-                                onClick = { deleteImg(imageUrl) },
+                                onClick = { deleteImg(imageUrlToShow) },
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                    .size(20.dp)
                             ) {
                                 Icon(
                                     Icons.Default.Clear,
                                     contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(20.dp),
                                     tint = Color.White
                                 )
                             }
+                        } else {
+                            // Fondo para cards vacíos
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.LightGray)
+                            )
                         }
                     }
                 }
@@ -375,7 +394,7 @@ fun AddArticle(viewModel: AddArticleViewModel) {
                 OutlinedTextField(
                     value = value.value,
                     onValueChange = { value.value = it },
-                    label = { Text("Valor Nuevo", color = Color.White) },
+                    label = { Text("Valor", color = Color.White) },
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = Color.White,
                         unfocusedBorderColor = Color.Gray,

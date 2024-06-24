@@ -21,10 +21,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
@@ -36,6 +38,8 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -50,6 +54,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,6 +65,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.eug.swapz.models.Article
 import com.eug.swapz.R
+import com.eug.swapz.ui.scenes.main.NavigationItem
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
@@ -68,8 +74,8 @@ import com.eug.swapz.R
 fun InventoryScene(viewModel: InventoryViewModel) {
     val articles by viewModel.articles.observeAsState(emptyList())
     val username by viewModel.username.collectAsState()
-    val category by viewModel.category.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
+    val photoUrl by remember { mutableStateOf<String?>(null) }
 
     var articleToDelete by remember { mutableStateOf<Article?>(null) }
 
@@ -79,11 +85,35 @@ fun InventoryScene(viewModel: InventoryViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = username ?: "Inventory", color = Color.White) }, // Use the retrieved username as the title }, // Accessing viewModel.username correctly
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(photoUrl),
+                            contentDescription = "User Icon",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = username ?: "",
+                            style = MaterialTheme.typography.h6.copy(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                },
                 backgroundColor = Color(0xFF86C5E4)
             )
         }
-
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()
             .padding(innerPadding)
@@ -235,64 +265,49 @@ fun InventoryScene(viewModel: InventoryViewModel) {
             }
             Row(
                 modifier = Modifier
-                    .width(390.dp)
-                    .height(30.dp) // Ajustar la altura del footer
-                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)) // Bordes redondeados en la parte superior
-                    .widthIn(min = 280.dp, max = 360.dp) // Ajustar el ancho del Row
-
+                    .fillMaxWidth()
+                    .height(45.dp)
+                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(Color(0xFF2F96D8).copy(alpha = 0.9f), Color(0xFF1A73E8).copy(alpha = 0.9f))
                         )
                     )
-                    .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) // Añadir sombra para dar efecto de elevación
-                    .padding(horizontal = 24.dp) // Padding horizontal
+                    .shadow(12.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                     .align(Alignment.BottomCenter),
-                horizontalArrangement = Arrangement.SpaceEvenly, // Espaciar elementos equitativamente
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
-            ){
-                IconButton(onClick = { viewModel.navigateToMain() }) {
-                    Icon(
-                        Icons.Filled.Home,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp) // Tamaño del ícono aumentado
-                    )
-                }
-                IconButton(onClick = { viewModel.navigateToChatList() }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Chat,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                IconButton(onClick = { viewModel.navigateToAddArticle() }) {
-                    Icon(
-                        Icons.Filled.AddBox,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-
-                IconButton(onClick = { viewModel.navigateToInventory() }) {
-                    Icon(
-                        imageVector = Icons.Filled.Person,
-                        contentDescription = "Profile",
-                        modifier = Modifier.size(20.dp),
-                        tint = Color.White
-                    )
-                }
-
-                IconButton(onClick = { viewModel.signOut() }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ExitToApp,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+            ) {
+                NavigationItem(
+                    icon = Icons.Filled.Home,
+                    label = "Inicio",
+                    onClick = { viewModel.navigateToMain() },
+                    iconSize = 24.dp
+                )
+                NavigationItem(
+                    icon = Icons.AutoMirrored.Filled.Chat,
+                    label = "Chats",
+                    onClick = { viewModel.navigateToChatList() },
+                    iconSize = 24.dp
+                )
+                NavigationItem(
+                    icon = Icons.Filled.AddCircle,
+                    label = "Añadir",
+                    onClick = { viewModel.navigateToAddArticle() },
+                    iconSize = 25.dp
+                )
+                NavigationItem(
+                    icon = Icons.Filled.Inventory,
+                    label = "Inventario",
+                    onClick = { viewModel.navigateToInventory() },
+                    iconSize = 24.dp
+                )
+                NavigationItem(
+                    icon = Icons.AutoMirrored.Filled.ExitToApp,
+                    label = "Salir",
+                    onClick = { viewModel.signOut() },
+                    iconSize = 24.dp
+                )
             }
         }
     }

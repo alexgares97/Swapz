@@ -3,6 +3,7 @@ package com.eug.swapz.datasources
 
 import android.content.ContentValues.TAG
 import android.location.Location
+import android.net.Uri
 import android.util.Log
 import com.eug.swapz.datasources.interfaces.ISessionDataSource
 import com.eug.swapz.models.User
@@ -82,6 +83,7 @@ class SessionDataSource : ISessionDataSource{
             result.user?.let { user ->
                 val profileUpdates = UserProfileChangeRequest.Builder()
                     .setDisplayName(username)
+                    .setPhotoUri(Uri.parse(photo))
                     .build()
                 user.updateProfile(profileUpdates).await()
                 val userId = user.uid

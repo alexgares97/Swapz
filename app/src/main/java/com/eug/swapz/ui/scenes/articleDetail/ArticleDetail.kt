@@ -28,6 +28,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -215,13 +217,13 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                         iconSize = 24.dp
                     )
                     NavigationItem(
-                        icon = Icons.Filled.AddBox,
-                        label = "Subir",
+                        icon = Icons.Filled.AddCircle,
+                        label = "Añadir",
                         onClick = { viewModel.navigateToAddArticle() },
-                        iconSize = 29.dp
+                        iconSize = 25.dp
                     )
                     NavigationItem(
-                        icon = Icons.Filled.Person,
+                        icon = Icons.Filled.Inventory,
                         label = "Inventario",
                         onClick = { viewModel.navigateToInventory() },
                         iconSize = 24.dp

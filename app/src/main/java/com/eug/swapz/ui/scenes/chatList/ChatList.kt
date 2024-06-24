@@ -52,6 +52,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.launch
@@ -162,13 +164,13 @@ fun BottomNavigationBar(viewModel: ChatListViewModel) {
             iconSize = 24.dp
         )
         BottomNavigationItem(
-            icon = Icons.Filled.AddBox,
-            label = "Subir",
+            icon = Icons.Filled.AddCircle,
+            label = "Añadir",
             onClick = { viewModel.navigateToAddArticle() },
-            iconSize = 29.dp // Tamaño incrementado del ícono de "Subir"
+            iconSize = 25.dp
         )
         BottomNavigationItem(
-            icon = Icons.Filled.Person,
+            icon = Icons.Filled.Inventory,
             label = "Inventario",
             onClick = { viewModel.navigateToInventory() },
             iconSize = 24.dp

@@ -27,11 +27,14 @@ class InventoryViewModel(
     val username: StateFlow<String?> = _username
     private val _category = MutableStateFlow<String?>(null)
     val category: StateFlow<String?> = _category
+    private val photoUrl = MutableStateFlow<String?>(null)
+    val photo: StateFlow<String?> = photoUrl
 
 
     init {
         // Call retrieveUsername() when the ViewModel is initialized
         retrieveUsername()
+        retrievePhotoUrl()
     }
     private fun getCurrentUserId(): String? {
         return sessionDataSource.getCurrentUserId()
@@ -47,6 +50,12 @@ class InventoryViewModel(
             } else {
                 Log.e("InventoryViewModel", "User ID is null or empty")
             }
+        }
+    }
+    private fun retrievePhotoUrl() {
+        viewModelScope.launch {
+            val currentUser = auth.currentUser
+            photoUrl.value = currentUser?.photoUrl?.toString()
         }
     }
     private fun retrieveUsername() {

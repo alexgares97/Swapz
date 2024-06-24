@@ -38,8 +38,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
@@ -303,13 +305,13 @@ fun MainScene(viewModel: MainViewModel) {
                     iconSize = 24.dp
                 )
                 NavigationItem(
-                    icon = Icons.Filled.AddBox,
-                    label = "Subir",
+                    icon = Icons.Filled.AddCircle,
+                    label = "Añadir",
                     onClick = { viewModel.navigateToAddArticle() },
-                    iconSize = 29.dp
+                    iconSize = 25.dp
                 )
                 NavigationItem(
-                    icon = Icons.Filled.Person,
+                    icon = Icons.Filled.Inventory,
                     label = "Inventario",
                     onClick = { viewModel.navigateToInventory() },
                     iconSize = 24.dp
