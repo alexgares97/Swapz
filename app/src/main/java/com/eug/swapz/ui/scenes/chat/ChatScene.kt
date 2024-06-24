@@ -74,6 +74,7 @@ fun ChatScene(viewModel: ChatViewModel) {
     var showFinalizedMessage by remember { mutableStateOf(false) }
     var showRejectDialog by remember { mutableStateOf(false) }
     val otherUserUid by viewModel.otherUserId.observeAsState("")
+    val isFinalize by viewModel.isFinalizeMessage.observeAsState(false)
 
     LaunchedEffect(currentChatId) {
         Log.d("ChatScene", "Listening for chat messages and status")
@@ -323,6 +324,9 @@ fun ChatScene(viewModel: ChatViewModel) {
             shape = RoundedCornerShape(16.dp),
             backgroundColor = Color.White
         )
+    }
+    if (isFinalize){
+        showConfetti = true
     }
     if (showConfetti) {
         ConfettiAnimation(

@@ -55,6 +55,8 @@ class ChatViewModel(
     var requestorId: LiveData<String> = _requestorId
     private val _otherUserId = MutableLiveData<String?>()
     val otherUserId: LiveData<String?> = _otherUserId
+    private val isFinalize = MutableLiveData<Boolean>()
+    var isFinalizeMessage: LiveData<Boolean> = isFinalize
 
     fun listenForChatMessages(currentChatId: String) {
         Log.d("ChatViewModel", "Listening to chat ID: $currentChatId")
@@ -70,10 +72,15 @@ class ChatViewModel(
                     val title = messageSnapshot.child("title").getValue(String::class.java)
                     val timestamp = messageSnapshot.child("timestamp").getValue(Long::class.java) ?: 0L
                     val isInventory = messageSnapshot.child("isInventory").getValue(Boolean::class.java) ?: false
-
+                    val currentUserId = getCurrentUserId() ?: ""
+                    if (checkTransactionSuccess(text) && currentUserId != senderId) {
+                        isFinalize.value= true
+                        // Handle the success case
+                    }
 
                     val chatMessage = ChatMessage(senderId, text, imageUrl, title, timestamp, isInventory)
                     messages.add(chatMessage)
+
                 }
                 _messages.postValue(messages) // Use postValue for thread safety
             }
@@ -88,6 +95,10 @@ class ChatViewModel(
         // Save references to remove the listener later if needed
         this.chatQuery = chatQuery
         this.chatListener = chatListener
+    }
+    fun checkTransactionSuccess(message: String?): Boolean {
+        // Check if the message matches the expected success text
+        return message == "¡La transacción ha finalizado con éxito!"
     }
 
     // Función para obtener los artículos de un usuario
