@@ -29,7 +29,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -149,6 +152,7 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     modifier = Modifier
                         .padding(innerPadding)
                         .padding(10.dp)
+
                 ) {
                     if (images.isNotEmpty()) {
                         Image(
@@ -163,33 +167,99 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                                 .shadow(4.dp, RoundedCornerShape(8.dp)) // Agrega sombra para mayor profundidad
                         )
                     }
-                    Text(
-                        text = article.title,
-                        style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold), // Incrementa el tamaño de la fuente
-                        modifier = Modifier.padding(bottom = 8.dp, top = 10.dp)
-                    )
-                    Text(
-                        text = article.desc,
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Justify),
+                    Column(
                         modifier = Modifier
-                            .padding(vertical = 8.dp)
-                    )
-                    Text(
-                        text = "Estado: ${article.status}",
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
-                        modifier = Modifier.align(Alignment.Start)
-                    )
-                    Text(
-                        text = "Categoría: ${article.cat}",
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
-                        modifier = Modifier.align(Alignment.Start)
-                    )
-                    Text(
-                        text = "Valor: ${article.value} €",
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
-                        modifier = Modifier.align(Alignment.Start)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
+                            .padding(16.dp)
+                            .fillMaxWidth()
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .shadow(8.dp, shape = RoundedCornerShape(16.dp))
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = article.title,
+                            style = TextStyle(
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF333333)
+                            ),
+                            modifier = Modifier.padding(bottom = 8.dp, top = 10.dp)
+                        )
+                        Text(
+                            text = article.desc,
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Normal,
+                                color = Color(0xFF666666),
+                                textAlign = TextAlign.Justify
+                            ),
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = null,
+                                tint = Color(0xFFFFC107),
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = "Estado: ${article.status}",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFF666666)
+                                ),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Category,
+                                contentDescription = null,
+                                tint = Color(0xFF03A9F4),
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = "Categoría: ${article.cat}",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFF666666)
+                                ),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AttachMoney,
+                                contentDescription = null,
+                                tint = Color(0xFF4CAF50),
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = "Valor: ${article.value} €",
+                                style = TextStyle(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFF666666)
+                                ),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
+
+
                 }
                 Row(
                     modifier = Modifier
@@ -206,46 +276,36 @@ fun ArticleDetail(viewModel: ArticleDetailViewModel) {
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = { viewModel.home() }) {
-                        Icon(
-                            Icons.Filled.Home,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp) // Ajusta el tamaño del ícono
-                        )
-                    }
-                    IconButton(onClick = { viewModel.navigateToChatList() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Chat,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    IconButton(onClick = { viewModel.navigateToAddArticle() }) {
-                        Icon(
-                            Icons.Filled.AddBox,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
-                    IconButton(onClick = { viewModel.navigateToInventory() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Person,
-                            contentDescription = "Profile",
-                            modifier = Modifier.size(24.dp),
-                            tint = Color.White
-                        )
-                    }
-                    IconButton(onClick = { viewModel.signOut() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                    NavigationItem(
+                        icon = Icons.Filled.Home,
+                        label = "Inicio",
+                        onClick = { viewModel.navigateToMain() },
+                        iconSize = 24.dp
+                    )
+                    NavigationItem(
+                        icon = Icons.AutoMirrored.Filled.Chat,
+                        label = "Chats",
+                        onClick = { viewModel.navigateToChatList() },
+                        iconSize = 24.dp
+                    )
+                    NavigationItem(
+                        icon = Icons.Filled.AddCircle,
+                        label = "Añadir",
+                        onClick = { viewModel.navigateToAddArticle() },
+                        iconSize = 25.dp
+                    )
+                    NavigationItem(
+                        icon = Icons.Filled.Inventory,
+                        label = "Inventario",
+                        onClick = { viewModel.navigateToInventory() },
+                        iconSize = 24.dp
+                    )
+                    NavigationItem(
+                        icon = Icons.AutoMirrored.Filled.ExitToApp,
+                        label = "Salir",
+                        onClick = { viewModel.signOut() },
+                        iconSize = 24.dp
+                    )
                 }
             }
             if (showConfirmationDialog) {

@@ -404,7 +404,10 @@ fun ChatMessage(message: ChatMessage, currentUserUid: String, viewModel: ChatVie
             )
         }
         if (message.isInventory) {
-            viewModel.getUserArticles(message.senderId)
+            LaunchedEffect(message.senderId) {
+                viewModel.getUserArticles(message.senderId)
+            }
+
             val articles by viewModel.articles.observeAsState(emptyList())
             if (articles.isNotEmpty()) {
                 InventoryCarousel(inventory = articles, viewModel = viewModel)
@@ -517,9 +520,10 @@ fun InventoryCarousel(inventory: List<Article>, viewModel: ChatViewModel) {
                                 title = title
                             )
                         }
-                        showConfirmationDialog = false
                         viewModel.listenForChatStatus(currentChatId)
                         viewModel.listenForChatMessages(currentChatId)
+                        showConfirmationDialog = false
+
                     }
                 ) {
                     Text("Confirmar")

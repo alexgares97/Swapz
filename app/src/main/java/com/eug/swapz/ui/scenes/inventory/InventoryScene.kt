@@ -325,7 +325,7 @@ fun EmptyInventoryView(viewModel: InventoryViewModel) {
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                painter = rememberAsyncImagePainter(R.drawable.empty_inventory_box),
+                painter = rememberAsyncImagePainter(R.drawable.inventario),
                 contentDescription = "No Messages",
                 modifier = Modifier.size(120.dp)
             )
