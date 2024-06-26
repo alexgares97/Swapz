@@ -214,8 +214,6 @@ class ChatViewModel(
                 Log.e("ChatViewModel", "Exception occurred while sending message", e)
             }
         }
-        listenForChatMessages(currentChatId.toString())
-
     }
     fun sendMessageRejected(senderId: String) {
         // Mensajes de rechazo
